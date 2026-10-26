@@ -2,6 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(curl * https://litterbox.catbox.moe/resources/internals/api.php)",
+      "Bash(curl *litterbox.catbox.moe*)",
+      "Bash(curl * https://uguu.se/upload)",
+      "Bash(curl *uguu.se*)",
       "Bash(curl * https://api.buffer.com)",
       "Bash(curl * https://api.buffer.com *)"
     ]
