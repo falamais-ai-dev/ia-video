@@ -8,6 +8,13 @@ description: Use ao animar qualquer cena 3D do Pera AI ou do Ponto Cifrão (Remo
 Pedido do Sebastião em 30/10/2026: "as animações estão bem fracas". Este é o padrão para deixá-las com cara
 de desenho animado bem feito, sem gastar nada (só Remotion, Three.js e bibliotecas MIT).
 
+## Regra de ouro (Sebastião, 30/10)
+- "Esse nível de detalhe e carinho precisa ser em todos os vídeos": nada de versão "boa o bastante" para cumprir
+  horário. Todo vídeo passa pela checagem da seção 5 e pelas seções 6 e 7.
+- "Sempre tente renderizar as coisas no computador, nuvem é último caso": render (inteiro, trechos, capa e quadros de
+  conferência longos) no PC dele via Remote Control (~1 min para 2 min de vídeo). Nuvem só com o PC desligado ou
+  falhando, e o motivo vai no relatório. Quadros soltos rápidos de conferência podem ser na nuvem com `nivel: nuvem`.
+
 ## Onde está o código
 Modelo padrão em `/mnt/project-files/config/personagem-3d/blocos/fonte/src/` (copie para o `src/` do vídeo):
 - `atuacao.jsx`: motor de atuação. `personagens-roblox.jsx` já usa; não precisa chamar direto.
@@ -27,6 +34,8 @@ pequeno antes (antecipação); passa um pouco do ponto e assenta (follow-through
 - **Caminhada sem patinar**: `caminhada(dist)` de atuacao.jsx, com a distância andada até t
   (`POSES_BETO.anda = (l, t) => ({...parado(l, t), ...caminhada(distAte(t))})`). Velocidade do caminho
   0,6 a 1,2 un./s; caminho mais lento que isso vira "esteira" (pé andando e corpo parado).
+- **Braço nunca atravessa o corpo**: `liberaBraco` (personagens-roblox.jsx) abre o ombro sozinho quando a pose, a mistura
+  ou o passa-do-ponto levariam o braço para dentro do tronco. Não desligue; em pose nova, confira mesmo assim.
 - **Exagere a reação**: surpresa com pulo, choque com tremida, alívio com ombro caindo. Personagem de
   brinquedo pede gesto grande.
 
@@ -39,6 +48,12 @@ pequeno antes (antecipação); passa um pouco do ponto e assenta (follow-through
 - Rosto nunca dentro da faixa da legenda (y 1240 a 1410) nem cortado na altura dos olhos.
 - Personagem andando: plano com `segue: (t) => eleEm(t).p` para a câmera acompanhar.
 - A câmera na mão (`vivo`, ligada por padrão) dá vida ao plano; desligue com `vivo: 0` em macro.
+- **Abra o plano**: o 9:16 corta o que acontece do lado. Depois de montar a lista, abra todo plano ~20% e o detalhe
+  ~12% (laço `ABRE` no Video.jsx da maçaneta), sem deixar a câmera passar da parede do fundo.
+- **Câmera nunca atrás da parede nem olhando para onde não há cenário** (tela vazia): use `enq()` do Video.jsx da
+  maçaneta, que gira o lado do plano até caber. Personagem de perfil numa parede: ele vira corpo e cabeça para a câmera.
+- Para conferir câmera sem renderizar: empacote o Video.jsx com esbuild e imprima `CAM.em(t)` e `CAM.projeta(t, cabeça)`
+  (a cabeça do boneco fica a ~2,1 de altura).
 
 ## 3. Cena viva (informação dentro da cena)
 - **Cada número da fala vira um medidor que muda diante do olho**: `<Medidor t p valor unidade a />` espetado
@@ -66,6 +81,22 @@ corte** e procure: mão atravessando objeto, objeto flutuando, pé patinando, ju
 rosto cortado ou atrás da legenda, plano sem rosto e sem objeto-assunto, tela parada mais de 3 s,
 personagem congelado. Pergunta final: "se eu tirar o som, cada frase tem algo mudando na tela?"
 Se não, ponha medidor, etiqueta, consequência ou reação.
+
+## 6. Voz com vida (pedido de 30/10: "falta detalhar entonação, tenta ser mais humano")
+- Marca de entonação em quase toda frase, não só no começo do bloco: `[playfully]`/`[mischievously]` na piada,
+  `[laughs]` logo antes da palavra que fecha a piada, `[whispers]` no laço aberto, `[sighs]` no acidente,
+  `[surprised]` na virada ("Pera aí!"), `[dramatic]`/`[suspenseful]` antes do número forte, `[warmly]` no fecho;
+  número que importa em MAIÚSCULAS; reticências antes da palavra-surpresa.
+- `stability: 0.0` na chamada (mais expressiva; mesma voz de config/voz.json). Pausas: encurte só acima de 0,30 s
+  (para 0,24 s), senão o tempo da piada some.
+- Confira com a transcrição do ElevenLabs (speech-to-text, scribe_v1): todas as palavras certas e `[riso]`/`[suspiro]`
+  onde deviam. Se trocar a narração de um vídeo já animado, recalcule os tempos casando palavra com palavra
+  (warp linear entre os inícios e fins das palavras) em vez de remarcar à mão: T, legenda, efeitos e respiros.
+
+## 7. Efeito sonoro só com algo na tela
+Cada efeito precisa de algo acontecendo no mesmo instante: objeto mexendo, número mudando, faísca, rótulo ou
+personagem entrando. Antes de mixar, percorra a lista de efeitos com a grade de quadros do mesmo tempo e tire o que
+não tem par na tela (porta parada, "ar seco", moeda que não cai, bipe solto).
 
 ## Skills de apoio instaladas neste repositório
 - `remotion-best-practices` (oficial do Remotion): timing, `spring`, sequências, transições, 3D no Remotion.
