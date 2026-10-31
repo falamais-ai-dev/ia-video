@@ -75,6 +75,17 @@ pequeno antes (antecipação); passa um pouco do ponto e assenta (follow-through
 Ponha `{Q.pos && <><Aquece /><Acabamento cam={CAM} t={t} dof={Q.dof} /></>}` no fim do `<ThreeCanvas>` e
 `<LuzJogo>` já traz a luz de recorte. Rode `ferramentas/brilho.sh` depois (o acabamento muda o brilho).
 
+## 4b. Nada que pisca (regra 45, 31/10: "as ondas estão dando dor de cabeça")
+O Wi-Fi do roteador soltava 3,5 a 9,6 anéis por segundo, com a opacidade em 10 degraus e uma tremida aleatória
+a 12 Hz: pisca-pisca na faixa que cansa a vista (3 a 30 Hz). Vale para onda, sinal, pulso, brilho, faísca e alerta:
+- No máximo ~1 pulso novo por segundo em cada fonte (anéis: `vel x n <= 1,1`; ex. `vel 0.26`, `n 4`), e no máximo
+  2 fontes pulsando na mesma tela.
+- Opacidade e tamanho mudam contínuos: sem `Math.round` em poucos níveis (use 40 ou mais) e sem liga/desliga seco.
+- Tremida e "alerta" com seno suave de até 2 a 3 Hz, nunca `rnd(Math.floor(t * 12))`.
+- Elemento fino de alto contraste (anel, linha) com opacidade até 0,8 e espessura que a tela mostre sem serrilhar.
+- Na caça-erros, olhe 2 s de cada cena com onda em velocidade normal e pergunte "isso cansa a vista?". Na dúvida, mais lento.
+O componente `Ondas` corrigido está em videos/2026-10-31-roteador-wifi/fonte-animacao/src/Casa.jsx (`VEL_MAX`).
+
 ## 5. Checagem da animação (caça-erros, antes de "Status: pronto")
 Além da checagem de 2 quadros/s, extraia **8 quadros/s nos 0,5 s depois de cada troca de pose e de cada
 corte** e procure: mão atravessando objeto, objeto flutuando, pé patinando, junta torta no passa-do-ponto,
@@ -83,8 +94,15 @@ personagem congelado. Pergunta final: "se eu tirar o som, cada frase tem algo mu
 Se não, ponha medidor, etiqueta, consequência ou reação.
 
 ## 6. Voz com vida (pedido de 30/10: "falta detalhar entonação, tenta ser mais humano")
+- **Gancho para cima (regra 45, 31/10: "no início a voz está desanimada"):** as 2 primeiras frases começam com
+  `[excited]`, a 1ª termina em "!" ou "?" e nenhuma das duas termina em reticências. `[mischievously]`,
+  `[dramatic]` e `[sighs]` só depois dos ~6 s.
+- **Nunca cochicho (regra 45, 31/10: "elimine de vez esses cochichos, não combina"):** nada de `[whispers]`,
+  `[softly]`, `[quietly]` ou parecidos em nenhuma frase. No laço aberto, use `[curious]` ou `[playfully]`.
+- Antes de gerar a narração (uma vez só), rode `python3 -I /mnt/project-files/ferramentas/texto_voz.py narracao-texto.txt`;
+  só gere com "OK".
 - Marca de entonação em quase toda frase, não só no começo do bloco: `[playfully]`/`[mischievously]` na piada,
-  `[laughs]` logo antes da palavra que fecha a piada, `[whispers]` no laço aberto, `[sighs]` no acidente,
+  `[laughs]` logo antes da palavra que fecha a piada, `[curious]` no laço aberto, `[sighs]` no acidente,
   `[surprised]` na virada ("Pera aí!"), `[dramatic]`/`[suspenseful]` antes do número forte, `[warmly]` no fecho;
   número que importa em MAIÚSCULAS; reticências antes da palavra-surpresa.
 - `stability: 0.0` na chamada (mais expressiva; mesma voz de config/voz.json). Pausas: encurte só acima de 0,30 s
@@ -94,6 +112,7 @@ Se não, ponha medidor, etiqueta, consequência ou reação.
   (warp linear entre os inícios e fins das palavras) em vez de remarcar à mão: T, legenda, efeitos e respiros.
 
 ## 7. Efeito sonoro só com algo na tela
+Nada de som de respiração, sopro de boca ou cochicho (regra 45); o `sfx.py` já esconde os arquivos vetados.
 Cada efeito precisa de algo acontecendo no mesmo instante: objeto mexendo, número mudando, faísca, rótulo ou
 personagem entrando. Antes de mixar, percorra a lista de efeitos com a grade de quadros do mesmo tempo e tire o que
 não tem par na tela (porta parada, "ar seco", moeda que não cai, bipe solto).
