@@ -293,6 +293,68 @@ const Castelo = ({p, cor, s = 1}) => (
     <Linha a={[0, 8.8, 0]} b={[0, 10, 0]} r={0.04} />
   </group>
 );
+// fundo pintado em camadas (como o original): cilindros com pintura feita em canvas, sem traço e sem profundidade,
+// para ler como cenário pintado e enevoado atrás do 3D. A pintura é periódica em x para não ter emenda.
+const rndP = (i) => { const v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+const pinceladas = (g, w, h, n, cores, mascara) => {
+  for (let i = 0; i < n; i++) { const x = rndP(i) * w, y = rndP(i + 0.5) * h; if (mascara && !mascara(x, y)) continue;
+    g.fillStyle = cores[i % cores.length]; g.globalAlpha = 0.05 + rndP(i + 0.25) * 0.08;
+    g.beginPath(); g.ellipse(x, y, 6 + rndP(i + 0.7) * 26, 2 + rndP(i + 0.9) * 6, (rndP(i + 0.3) - 0.5) * 0.6, 0, 7); g.fill(); }
+  g.globalAlpha = 1;
+};
+const texFundoLonge = () => canvasTex('fundoLonge', 4096, 1024, (g, w, h) => {
+  const TAU = Math.PI * 2;
+  const alt = (x) => { const u = x / w * TAU; return h * (0.36 + 0.13 * Math.sin(u * 3 + 0.4) + 0.08 * Math.sin(u * 7 + 1.3) + 0.045 * Math.sin(u * 17 + 2.1) + 0.02 * Math.sin(u * 41)); };
+  // cordilheira distante (lilás azulado, clareando para a base pela névoa)
+  const gr = g.createLinearGradient(0, h * 0.15, 0, h); gr.addColorStop(0, '#9FA9C9'); gr.addColorStop(0.55, '#BCC3D6'); gr.addColorStop(1, '#E6E4DA');
+  g.fillStyle = gr; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 4) g.lineTo(x, h - alt(x)); g.lineTo(w, h); g.closePath(); g.fill();
+  // neve nos picos
+  // neve nos picos: uma faixa contínua que acompanha o cume (sem colunas)
+  g.fillStyle = '#F4F2EE'; g.globalAlpha = 0.9; g.beginPath();
+  for (let x = 0; x <= w; x += 4) g.lineTo(x, h - alt(x));
+  for (let x = w; x >= 0; x -= 4) { const a = alt(x); g.lineTo(x, h - a + Math.max(0, a - h * 0.47) * (0.6 + 0.15 * Math.sin(x / w * Math.PI * 2 * 23))); }
+  g.closePath(); g.fill(); g.globalAlpha = 1;
+  // face de sombra das encostas (lado direito de cada subida)
+  g.fillStyle = '#8893B6'; g.globalAlpha = 0.35;
+  for (let x = 4; x <= w; x += 4) { if (alt(x) < alt(x - 4)) g.fillRect(x, h - alt(x), 4, alt(x) * 0.5); }
+  g.globalAlpha = 1;
+  pinceladas(g, w, h, 9000, ['#FFFFFF', '#8E98BC', '#C9CFE0', '#E9E3D6'], (x, y) => y > h - alt(x) + 3);
+  // segunda fileira, mais perto e mais escura
+  const alt2 = (x) => { const u = x / w * TAU; return h * (0.2 + 0.06 * Math.sin(u * 5 + 2.2) + 0.04 * Math.sin(u * 11 + 0.7) + 0.015 * Math.sin(u * 29)); };
+  const gr2 = g.createLinearGradient(0, h * 0.5, 0, h); gr2.addColorStop(0, '#8C9BB5'); gr2.addColorStop(1, '#D9DCD3');
+  g.fillStyle = gr2; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 4) g.lineTo(x, h - alt2(x)); g.lineTo(w, h); g.closePath(); g.fill();
+  pinceladas(g, w, h, 6000, ['#FFFFFF', '#7F8DAA', '#E5E1D4'], (x, y) => y > h - alt2(x) + 3);
+});
+const texFundoPerto = () => canvasTex('fundoPerto', 4096, 1024, (g, w, h) => {
+  const TAU = Math.PI * 2;
+  const alt = (x) => { const u = x / w * TAU; return h * (0.2 + 0.05 * Math.sin(u * 4 + 1.0) + 0.035 * Math.sin(u * 9 + 2.5) + 0.012 * Math.sin(u * 23)); };
+  const gr = g.createLinearGradient(0, h * 0.6, 0, h); gr.addColorStop(0, '#93AA86'); gr.addColorStop(1, '#C8D1B4');
+  g.fillStyle = gr; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 4) g.lineTo(x, h - alt(x)); g.lineTo(w, h); g.closePath(); g.fill();
+  // castelinhos pintados no alto de alguns morros
+  for (let k = 0; k < 6; k++) { const x = (k + 0.3 + rndP(k) * 0.4) / 6 * w, y = h - alt(x); const s = 26 + rndP(k + 3) * 14;
+    g.fillStyle = '#B7AFA6'; g.fillRect(x - s, y - s * 1.1, s * 2, s * 1.2); g.fillRect(x - s * 1.25, y - s * 1.7, s * 0.55, s * 1.8); g.fillRect(x + s * 0.7, y - s * 1.7, s * 0.55, s * 1.8);
+    g.fillStyle = k % 2 ? '#B9837A' : '#7FA3A1'; [[x - s * 0.98, s * 0.55], [x + s * 0.98, s * 0.55]].forEach(([cx, r]) => { g.beginPath(); g.moveTo(cx - r * 0.7, y - s * 1.7); g.lineTo(cx, y - s * 2.6); g.lineTo(cx + r * 0.7, y - s * 1.7); g.fill(); }); }
+  // copas de árvores em grupos, escuras embaixo e iluminadas em cima
+  for (let i = 0; i < 520; i++) { const x = rndP(i * 3.1) * w, ya = h - alt(x); const y = ya + 6 + rndP(i * 5.7) * (h - ya) * 0.55; const r = 9 + rndP(i * 1.9) * 16 * (0.6 + (y - ya) / (h * 0.3));
+    g.fillStyle = '#6F8C66'; g.globalAlpha = 0.9; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+    g.fillStyle = '#A9C08D'; g.globalAlpha = 0.6; g.beginPath(); g.arc(x - r * 0.25, y - r * 0.3, r * 0.55, 0, 7); g.fill(); }
+  g.globalAlpha = 1;
+  pinceladas(g, w, h, 9000, ['#FFFFFF', '#5F7B58', '#D8DCC4', '#B7C79A'], (x, y) => y > h - alt(x) + 3);
+  // névoa quente na base
+  const nv = g.createLinearGradient(0, h * 0.7, 0, h); nv.addColorStop(0, 'rgba(236,230,214,0)'); nv.addColorStop(1, 'rgba(236,230,214,0.85)');
+  g.fillStyle = nv; g.fillRect(0, h * 0.7, w, h * 0.3);
+});
+const NOITE_FP = new THREE.Color('#3B4270'), BRANCO_FP = new THREE.Color('#FFFFFF');
+const FundoPintado = ({c = [0, 0, 0], r = 95, noite = 0}) => (
+  <group position={c}>
+    {[[r * 1.35, 42, -6, 'fundoLonge', texFundoLonge, 2], [r, 30, -3, 'fundoPerto', texFundoPerto, 3]].map(([R, H, y0, k, tx, rep]) => {
+      const m = MAT('fp' + k, () => { const t = tx().clone(); t.wrapS = THREE.RepeatWrapping; t.repeat.set(rep, 1); t.needsUpdate = true;
+        return new THREE.MeshBasicMaterial({map: t, transparent: true, depthWrite: false, fog: false, side: THREE.BackSide}); });
+      m.color.copy(BRANCO_FP).lerp(NOITE_FP, noite);
+      return <mesh key={k} position={[0, y0 + H / 2, 0]} material={m} renderOrder={k === 'fundoLonge' ? -0.9 : -0.8}><cylinderGeometry args={[R, R, H, 96, 1, true]} /></mesh>;
+    })}
+  </group>
+);
 const Montanhas = ({c = [0, 0, 0], r0 = 110}) => (
   <group position={c}>
     {Array.from({length: 24}).map((_, i) => { const a = i / 24 * Math.PI * 2 + 0.13, r = r0 + (i * 37 % 35), h = 18 + (i * 53 % 20);
@@ -944,7 +1006,7 @@ const Passagem = ({t, D}) => {
     </group>
   );
 };
-const Campo = ({t}) => {
+const Campo = ({t, noite = 0}) => {
   const dz = kf(t, [[TM.entao - 0.1, 5], [TM.exercitos + 0.15, 0]], outQ);
   const marcha = (arr) => arr.map(([x, y, z], i) => [x, Math.abs(Math.sin(t * 9 + i * 0.7)) * 0.05 * (dz > 0.01 ? 1 : 0), z - dz]);
   const D = duelo(t, dz);
@@ -978,7 +1040,7 @@ const Campo = ({t}) => {
           {i % 3 === 0 ? <><Linha a={[0.05, 0, 0]} b={[0.06, 0.26, 0]} r={0.006} cor="#3E7A2E" />{[0, 1, 2, 3, 4].map((k) => { const a = k * 1.256; return <Esf key={k} r={0.026} p={[0.06 + Math.cos(a) * 0.03, 0.28, Math.sin(a) * 0.03]} m={i % 2 ? '#E8434F' : '#4A7BE0'} line={0.35} seg={8} />; })}</> : null}
         </group>; })}
       {[[-7, 9, -24, 9], [5, 11, -30, 11], [14, 8, -22, 8], [-16, 10, -32, 10], [1, 14, -40, 13]].map(([x, y, z, s], i) => <Nuvem key={i} id={i} p={[X0 + x + Math.sin(t * 0.15 + i) * 0.3, y, z]} s={s} />)}
-      <Montanhas c={[X0, 0, 0]} r0={80} /><Capinzal g={1 + 1.6 * Math.min(1, Math.max(0, (t - TM.semana) / 2.2))} /><Arvoredo lista={ARV.map(([x, y, z, k, a]) => [X0 + x, y, z - 8, k, a])} />
+      <FundoPintado c={[X0, 0, 0]} r={70} noite={noite} /><Capinzal g={1 + 1.6 * Math.min(1, Math.max(0, (t - TM.semana) / 2.2))} /><Arvoredo lista={ARV.map(([x, y, z, k, a]) => [X0 + x, y, z - 8, k, a])} />
     </group>
   );
 };
@@ -1033,9 +1095,9 @@ export const LancaEscudo2 = () => {
             {[[8, -10.5], [13, -10.5], [18, -10.5], [12, -19.5]].map(([x, z], i) => <Bandeira key={'ea' + i} p={[x, 0, z]} tipo="a" t={t} h={2.6} />)}
             <Castelo p={[-24, 0, -48]} cor="#C8352F" s={1.3} /><Castelo p={[24, 0, -50]} cor="#1C9C98" s={1.3} /><Castelo p={[-7, 0, -38]} cor="#C8352F" s={1.1} /><Castelo p={[8, 0, -40]} cor="#1C9C98" s={1.1} />
             {[[-6, 10, -26, 9], [8, 12, -34, 11], [-18, 13, -40, 12], [20, 11, -38, 10]].map(([x, y, z, s], i) => <Nuvem key={i} id={10 + i} p={[x, y, z]} s={s} />)}
-            <Montanhas /><Arvoredo lista={ARV} />
-          </> : <Campo t={t} />}
-          {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={amplo ? 0.6 : 2.2} faixa={amplo ? 14 : 3.2} longe={amplo ? 260 : 60} sat={lerp(amplo ? 0.16 : 0.2, -0.9, trava)} /></> : null}
+            <FundoPintado r={85} /><Arvoredo lista={ARV} />
+          </> : <Campo t={t} noite={noite} />}
+          {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={amplo ? 0.6 : 2.2} faixa={amplo ? 14 : 3.2} longe={amplo ? 260 : 60} sat={lerp(amplo ? -0.04 : 0.0, -0.9, trava)} /></> : null}
         </ThreeCanvas>
       </AbsoluteFill>
       <Legenda t={t} />
