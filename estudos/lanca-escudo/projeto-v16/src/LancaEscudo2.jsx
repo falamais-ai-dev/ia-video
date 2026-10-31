@@ -881,12 +881,14 @@ const duelo = (t0, dz) => {
   const ataque = t > TM.pegou;
   const ryV = ataque ? 0.75 : kf(t, [[TM.osReis, 0.3], [TM.pararam, 0.5], [TM.vermelho - 0.2, 0.5], [TM.vermelho + 0.1, 0.3], [TM.verde - 0.2, 0.3], [TM.verde + 0.1, 0.5]]), ryA = kf(t, [[TM.osReis, -0.3], [TM.pararam, -0.5], [TM.verde - 0.2, -0.5], [TM.verde + 0.1, -0.22], [TM.pegou - 0.2, -0.22], [TM.pegou + 0.1, -0.5]]);
   // lança: deitada até o grito; em pé no grito do vermelho; mirando no ataque
-  // lança: deitada -> em pé em 7 quadros (com passada do braço), e volta em 7 quadros; nada de pulo num quadro só
-  const alto = kf(t, [[TM.vermelho + 0.12, 0], [TM.vermelho + 0.36, 1, outQ], [TM.verde - 0.25, 1], [TM.verde, 0]]);
-  const base = ataque ? [1, 0, 0] : [1, 0.06, 0.05];
-  const dirV = mix(base, [0.15, 1, 0.05], alto);
-  const gripB = ataque ? [RV[0] + 0.24, 0.68, RV[2] + 0.3] : [RV[0] + 0.24, 0.6, RV[2] + 0.3];
-  const grip = mix(gripB, [RV[0] + 0.24, 0.62 + 0.08 * Math.max(0, Math.sin((t - TM.vermelho) * 6)), RV[2] + 0.3], alto);
+  // lança: até o ataque fica em pé ao lado do rei (a ponta nunca atravessa o escudo do outro rei); em pé no grito
+  // (sobe e desce em 7 quadros, e desce ANTES da câmera ir para o verde); só deita para mirar depois de recuar, longe do escudo
+  const alto = kf(t, [[TM.vermelho + 0.12, 0], [TM.vermelho + 0.36, 1, outQ], [TM.verde - 0.75, 1], [TM.verde - 0.5, 0]]);
+  const deita = kf(t, [[TM.correu - 0.45, 0], [TM.correu - 0.05, 1, outQ]]);
+  const dirPre = mix([0.12, 1, 0.08], [0.15, 1, 0.05], alto);
+  const dirV = mix(dirPre, [1, 0, 0], deita);
+  const gripPre = [RV[0] + 0.24, 0.6 + alto * (0.02 + 0.08 * Math.max(0, Math.sin((t - TM.vermelho) * 6))), RV[2] + 0.3];
+  const grip = mix(gripPre, [RV[0] + 0.24, 0.68, RV[2] + 0.3], deita);
   const ergue = kf(t, [[TM.escudo2 - 0.12, 0], [TM.escudo2 + 0.05, 0.16, outQ], [TM.escudo2 + 0.6, 0.08], [TM.verde, 0.08], [TM.escudo3 - 0.1, 0.24, outQ], [TM.fura2 + 0.4, 0.06], [TM.correu, 0]]);
   const escA = [RA[0] - 0.3, 0.68 + ergue + settle(t, TM.escudo2 + 0.05, 0.03, 14, 4) + settle(t, TM.escudo3, 0.03, 14, 4), RA[2] + 0.28];
   const ponta = pontaDe(grip, dirV, 0.55);
