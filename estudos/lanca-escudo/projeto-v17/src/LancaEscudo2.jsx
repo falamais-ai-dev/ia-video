@@ -1126,7 +1126,7 @@ export const LancaEscudo2 = () => {
           {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={amplo ? 0.6 : 2.2} faixa={amplo ? 14 : 3.2} longe={amplo ? 260 : 60} sat={lerp(amplo ? -0.04 : 0.0, -0.9, trava)} /></> : null}
         </ThreeCanvas>
       </AbsoluteFill>
-      <Legenda t={t} />
+      {IN.semLegenda ? null : <Legenda t={t} />}
     </AbsoluteFill>
   );
 };
