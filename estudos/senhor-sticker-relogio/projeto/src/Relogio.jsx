@@ -608,7 +608,7 @@ const SD_PAR = [XPAR + 0.0, 0.1, -0.4];
 const dumont = (t) => {
   const F = faceSD(t); let pos = SD_PAR, ry = 0, mP = null, mN = null, inc = 0, cab = [0, 0, 0], pe = null, vis = true, alt = 0, sentado = 0, relBolso = null, ombros = 0;
   const set = camEm(t).set;
-  if (set === 'par' && t < 4.3) { // gancho: encolhido, escondendo o pulso
+  if (set === 'par' && t < TM.em2 - 0.06) { // gancho: encolhido, escondendo o pulso
     mN = PM(pos, ry, [-0.12, 0.62, 0.22]); mP = PM(pos, ry, [0.05, 0.6, 0.24]); inc = 0.08; cab = [0.15, 0, 0];
   } else if (set === 'ceu') { // no cesto do dirigível (a posição vem da cena)
     vis = false;
@@ -643,7 +643,7 @@ const RODA = [[-0.8, 0.0, 0], [0.8, 0.05, 0], [-0.55, -0.6, 0], [0.6, -0.6, 0], 
 const cavalheiro = (t, k) => {
   const v = CAV[k]; const set = camEm(t).set; let pos, ry = 0, mP = null, mN = null, inc = 0, cab = [0, 0, 0], pe = null, vis = true, lat = 0, rel = null, desmaio = 0, cai = 0, relP = 0;
   let F = expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.5}]], k * 0.37);
-  if (set === 'par' && t < 4.3) { // roda zombando em volta do Dumont
+  if (set === 'par' && t < TM.em2 - 0.06) { // roda zombando em volta do Dumont
     const [x, z, r] = RODA[k]; pos = [SD_PAR[0] + x, 0.1, SD_PAR[2] + z]; ry = Math.atan2(SD_PAR[0] - pos[0], SD_PAR[2] - pos[2]);
     const ri = Math.sin(t * 20 + k * 2); F = expr(t, [[0, {olhos: 'feliz', boca: ri > 0 ? 'grito' : 'sorrisoD', bochecha: 0.8}]], k);
     mP = PM(pos, ry, [0.12, 0.95 + Math.sin(t * 14 + k) * 0.03, 0.35]); mN = PM(pos, ry, [-0.18, 0.55 + Math.abs(Math.sin(t * 10 + k)) * 0.08, 0.15]); inc = -0.1 + Math.sin(t * 12 + k) * 0.06; cab = [-0.2, 0, 0];
