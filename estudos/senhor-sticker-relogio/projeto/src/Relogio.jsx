@@ -774,11 +774,11 @@ const PLANOS = [
   {t0: TM.isso - 0.1, set: 'par', keys: [[TM.isso - 0.1, [XPAR + 1.7, 1.2, -1.2], [XPAR + 3.3, 0.8, -2.2], 44], [TM.so - 0.05, [XPAR + 1.8, 1.0, -1.3], [XPAR + 3.3, 0.5, -2.2], 44]]},
   // céu de Paris
   {t0: TM.so - 0.05, set: 'ceu', keys: [[TM.so - 0.05, [XCEU - 5, 2.0, 8], [XCEU, 1.3, 0], 46], [TM.ele - 0.05, [XCEU - 2.5, 2.2, 6.5], [XCEU, 1.2, 0], 44]]},
-  {t0: TM.ele - 0.05, set: 'ceu', keys: [[TM.ele - 0.05, [XCEU + 0.6, 1.3, 2.2], [XCEU + 0.35, 0.75, 0.0], 38], [TM.la - 0.05, [XCEU + 0.6, 1.25, 1.95], [XCEU + 0.35, 0.75, 0.0], 36]]},
-  {t0: TM.la - 0.05, set: 'ceu', keys: [[TM.la - 0.05, [XCEU + 1.6, 1.1, 1.2], [XCEU + 0.2, 0.9, 0], 40], [TM.soltar - 0.05, [XCEU + 1.4, 1.05, 1.0], [XCEU + 0.2, 0.9, 0], 38]]},
-  {t0: TM.soltar - 0.05, set: 'ceu', keys: [[TM.soltar - 0.05, [XCEU + 1.35, 1.1, 0.6], [XCEU + 0.25, 0.85, 0.0], 40], [TM.cavar - 0.05, [XCEU + 1.3, 1.08, 0.55], [XCEU + 0.25, 0.85, 0.0], 38]]},
-  {t0: TM.cavar - 0.05, set: 'ceu', keys: [[TM.cavar - 0.05, [XCEU + 1.0, 0.95, 0.45], [XCEU + 0.25, 0.7, 0.05], 38], [TM.abrir - 0.05, [XCEU + 0.95, 0.93, 0.42], [XCEU + 0.25, 0.7, 0.05], 34]]},
-  {t0: TM.abrir - 0.05, set: 'ceu', keys: [[TM.abrir - 0.05, [XCEU + 0.8, 0.88, 0.22], [XCEU + 0.32, 0.84, 0.12], 30], [TM.torcer - 0.05, [XCEU + 0.75, 0.87, 0.2], [XCEU + 0.32, 0.84, 0.12], 24]]},
+  {t0: TM.ele - 0.05, set: 'ceu', keys: [[TM.ele - 0.05, [XCEU + 0.7, 1.4, 2.7], [XCEU + 0.3, 0.8, 0.0], 40], [TM.la - 0.05, [XCEU + 0.7, 1.35, 2.45], [XCEU + 0.3, 0.8, 0.0], 38]]},
+  {t0: TM.la - 0.05, set: 'ceu', keys: [[TM.la - 0.05, [XCEU + 2.0, 1.3, 1.8], [XCEU + 0.2, 0.95, 0], 42], [TM.soltar - 0.05, [XCEU + 1.8, 1.25, 1.6], [XCEU + 0.2, 0.95, 0], 40]]},
+  {t0: TM.soltar - 0.05, set: 'ceu', keys: [[TM.soltar - 0.05, [XCEU + 1.9, 1.2, 0.9], [XCEU + 0.25, 0.85, 0.0], 40], [TM.cavar - 0.05, [XCEU + 1.8, 1.18, 0.85], [XCEU + 0.25, 0.85, 0.0], 38]]},
+  {t0: TM.cavar - 0.05, set: 'ceu', keys: [[TM.cavar - 0.05, [XCEU + 1.5, 1.05, 0.7], [XCEU + 0.25, 0.75, 0.05], 38], [TM.abrir - 0.05, [XCEU + 1.4, 1.03, 0.65], [XCEU + 0.25, 0.75, 0.05], 35]]},
+  {t0: TM.abrir - 0.05, set: 'ceu', keys: [[TM.abrir - 0.05, [XCEU + 1.1, 0.95, 0.35], [XCEU + 0.32, 0.84, 0.12], 34], [TM.torcer - 0.05, [XCEU + 1.0, 0.93, 0.32], [XCEU + 0.32, 0.84, 0.12], 28]]},
   {t0: TM.torcer - 0.05, set: 'ceu', keys: [[TM.torcer - 0.05, [XCEU - 4, 1.8, 5.5], [XCEU, 1.2, 0], 50], [TM.panqueca - 0.1, [XCEU - 3.2, 1.6, 4.6], [XCEU, 1.2, 0], 50]]},
   {t0: TM.panqueca - 0.1, set: 'par', keys: [[TM.panqueca - 0.1, [XPAR + 0.95, 1.55, -0.55], [XPAR + 0.9, 1.0, -1.7], 42], [TM.entao - 0.05, [XPAR + 0.95, 1.5, -0.7], [XPAR + 0.9, 0.95, -1.7], 40]]},
   // Maxim's
@@ -794,8 +794,8 @@ const PLANOS = [
   {t0: TM.o6 - 0.05, set: 'par', keys: [[TM.o6 - 0.05, [XPAR + 0.95, 1.3, -0.65], [XPAR + 1.4, 1.15, -1.75], 36], [TM.pulseira + 0.2, [XPAR + 0.95, 1.25, -0.7], [XPAR + 1.35, 1.1, -1.75], 34], [TM.mas - 0.05, [XPAR + 0.95, 1.15, -0.8], [XPAR + 0.95, 0.85, -1.7], 32]]},
   {t0: TM.mas - 0.05, set: 'par', keys: [[TM.mas - 0.05, [XPAR + 0.3, 1.2, 1.8], [XPAR - 0.4, 0.9, -1.0], 46], [TM.voa - 0.05, [XPAR + 1.0, 1.2, 1.7], [XPAR + 0.8, 0.9, -0.6], 44]]},
   // campo: 14-bis passa rente
-  {t0: TM.voa - 0.05, set: 'cam', keys: [[TM.voa - 0.05, [XCAM - 1.2, 0.5, 5.2], [XCAM - 2.6, 1.0, -0.2], 46], [TM.cronometra, [XCAM - 0.7, 0.55, 5.0], [XCAM - 0.4, 1.1, -0.2], 44, lin]]},
-  {t0: TM.cronometra, set: 'cam', keys: [[TM.cronometra, [XCAM - 0.3, 1.3, 3.6], [XCAM - 0.2, 1.0, -0.2], 40], [TM.ai - 0.05, [XCAM + 2.5, 1.3, 3.6], [XCAM + 3.0, 1.0, -0.2], 40, lin]]},
+  {t0: TM.voa - 0.05, set: 'cam', keys: [[TM.voa - 0.05, [XCAM - 0.6, 1.0, 9.0], [XCAM - 2.0, 1.8, -0.2], 44], [TM.cronometra, [XCAM - 0.2, 1.05, 8.8], [XCAM - 0.4, 1.85, -0.2], 44, lin]]},
+  {t0: TM.cronometra, set: 'cam', keys: [[TM.cronometra, [XCAM - 1.1, 1.95, 3.2], [XCAM - 1.4, 1.65, -0.2], 40], [TM.ai - 0.05, [XCAM + 1.5, 1.95, 3.2], [XCAM + 1.6, 1.65, -0.2], 40, lin]]},
   // virada (preto com carimbo) e calendário
   {t0: TM.ai - 0.05, set: 'cal', keys: [[TM.ai - 0.05, [XCAL, 1.6, 1.0], [XCAL, 1.6, -2.1], 44], [TM.dez, [XCAL, 1.6, 0.9], [XCAL, 1.6, -2.1], 44]]},
   {t0: TM.dez, set: 'cal', keys: [[TM.dez, [XCAL, 1.6, 1.4], [XCAL, 1.6, -2.1], 44], [TM.guerra, [XCAL, 1.6, 0.6], [XCAL, 1.6, -2.1], 40], [TM.na - 0.05, [XCAL, 1.6, 0.5], [XCAL, 1.6, -2.1], 30, outQ]]},
@@ -912,14 +912,16 @@ const CenaOfi = ({t}) => {
   </group>;
 };
 const CenaCam = ({t}) => {
-  const u = cl((t - TM.voa + 0.1) / (TM.ai - TM.voa + 0.1)); const ox = lerp(-3, 3, u); const p = [XCAM + ox, 1.0 + Math.sin(u * Math.PI) * 0.2, -0.2];
-  const F = faceSD(t); const olha = t > TM.cronometra; const pos = add(p, [0.3, -0.35, 0.3]);
-  const mN = olha ? add(pos, [0.05, 0.95, 0.15]) : add(pos, [0.25, 0.65, 0.2]); const mP = add(pos, [0.3, 0.65, -0.15]);
+  const u = cl((t - TM.voa + 0.1) / (TM.ai - TM.voa + 0.1)); const ox = lerp(-3, 3, u); const p = [XCAM + ox, 1.9 + Math.sin(u * Math.PI) * 0.2, -0.2];
+  const F = faceSD(t); const olha = t > TM.cronometra; const pos = add(p, [-1.1, -1.0, 0]);
+  const mN = olha ? add(pos, [-0.05, 1.0, 0.2]) : add(pos, [-0.2, 0.62, 0.15]); const mP = add(pos, [-0.2, 0.62, -0.15]);
   const c = {cor: COR_TERNO, ...F, mP, mN, sentado: 0.6, cab: olha ? [0.3, 0.4, 0] : [0, 0, 0], t, fase: 0.4, resp: t * 3, roupa: <><Colarinho /><Gravata cor="#D8323C" /></>, cabeca: <><CabeloRisca /><BigodeFino /><Panama y={0.31} /></>};
   return <group>
     <Campo t={t} />
-    <QuatorzeBis p={p} ry={Math.PI} rz={Math.sin(t * 3) * 0.04} t={t} />
-    <Boneco pos={pos} ry={-Math.PI / 2} c={c} /><NoPulso P={{pos, ry: -Math.PI / 2, c}} />
+    <group position={p} rotation={[0, 0, Math.sin(t * 3) * 0.04]} scale={1.8}><QuatorzeBis p={[0, 0, 0]} ry={Math.PI} t={t} /></group>
+    <Cx a={[0.42, 0.34, 0.42]} p={add(pos, [0, 0.2, 0])} m={lm('vime', () => texTabuas('vime', '#C99A5A', [2, 2]))} line={0.8} />
+    <Linha a={add(pos, [0.15, 0.37, 0.15])} b={add(p, [-0.9, -0.1, 0.3])} r={0.006} cor="#8A5A34" /><Linha a={add(pos, [0.15, 0.37, -0.15])} b={add(p, [-0.9, -0.1, -0.3])} r={0.006} cor="#8A5A34" />
+    <Boneco pos={pos} ry={-Math.PI / 2 + 0.5} c={c} /><NoPulso P={{pos, ry: -Math.PI / 2 + 0.5, c}} />
     {[0, 1, 2].map((k) => <Velocidade key={k} id={70 + k} p={add(p, [1.5 + k * 0.4, 0.2 + k * 0.1, 0])} k={(t * 2 + k * 0.33) % 1} s={0.8} rot={0} />)}
     {/* linha pontilhada da largada à chegada */}
     {Array.from({length: 20}).map((_, i) => i / 20 < u ? <Esf key={i} r={0.03} p={[XCAM - 6 + i * 0.6, 0.05, 0.6]} m="#FFFFFF" line={0.3} seg={6} /> : null)}
