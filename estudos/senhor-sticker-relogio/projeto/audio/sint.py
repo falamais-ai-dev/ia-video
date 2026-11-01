@@ -48,3 +48,13 @@ padrao = [0, 0.5, 0.75, 1, 2, 2.5, 2.75, 3, 4, 4.5, 4.75, 5, 6, 6.25, 6.5, 6.75,
 for p in padrao:
     i = int(p * b * SR); h = hit() * (1.0 if p % 1 == 0 else 0.6); x[i:i + len(h)] += h[:len(x) - i]
 salva('caixa', x)
+# tema de gângster em câmera lenta: baixo grave descendo + bumbo e caixa arrastados + acorde menor de cordas
+t = tt(2.6); x = np.zeros_like(t); b = 0.65
+for k, f0 in enumerate([82.4, 82.4, 73.4, 65.4]):
+    i = int(k * b * SR); d = int(0.6 * SR); tl = np.arange(d) / SR
+    s = sum(np.sin(2 * np.pi * f0 * j * tl) / j ** 1.3 for j in range(1, 8)) * np.exp(-tl / 0.35); x[i:i + d] += s[:len(x) - i]
+    kick = np.sin(2 * np.pi * 55 * tl * np.exp(-tl * 8)) * np.exp(-tl / 0.12); x[i:i + d] += 0.8 * kick[:len(x) - i]
+    if k % 2: h = reson(rng.standard_normal(d), 1800, 2200) * np.exp(-tl / 0.09); x[i:i + d] += 0.5 * h[:len(x) - i]
+for f0 in [164.8, 196.0, 246.9]:
+    x += 0.12 * lp(np.sign(np.sin(2 * np.pi * f0 * t)) * 0.5, 0.06) * env(t, [(0, 0), (0.8, 1), (2.2, 0.8), (2.6, 0)])
+salva('gangster', x)

@@ -31,7 +31,8 @@ put(SPL + 'bubble_01.ogg', W('pulseirinha') + 0.3, 0.3)
 put(WH, W('em', 1) - 0.3, 0.4)
 for i in range(4): put(CLK + str(1 + i % 5) + '.mp3', W('homem') + i * 0.28, 0.3, ate=0.3)
 put(C + 'bell_03.ogg', W('relógio') + 0.1, 0.2)
-for w in ['corrente', 'colete', 'bigode']: put(SW, W(w) - 0.12, 0.35)
+put(S + 'gangster.wav', W('com') - 0.1, 0.5)
+for w in ['corrente', 'colete', 'bigode']: put(SW, W(w) - 0.12, 0.2)
 put(C + 'spring_01.ogg', W('bigode') + 0.15, 0.25)
 # joia de madame: desmaio
 put(WH, W('relógio', 1) - 0.3, 0.4)
@@ -72,7 +73,12 @@ put(O + 'air-whoosh/whoosh2.mp3', W('voa') - 0.2, 0.45)
 put(S + 'motor.wav', W('voa') - 0.3, 0.3)
 put(C + 'bell_03.ogg', W('recorde') + 0.15, 0.35)
 # PLOT TWIST: silêncio e carimbo
-put(C + 'slam_02.ogg', W('aí') + 0.02, 0.6)
+B = O + '75-cc0-breaking-falling-hit-sfx/'
+put(O + '35-wooden-crackshitsdestructions/wood_impact_crack03.mp3.flac', W('aí') - 0.05, 0.5)
+put(B + 'bfh1_glass_breaking_02.ogg', W('aí') + 0.1, 0.3, ate=0.45)
+put(B + 'bfh1_falling_03.ogg', W('aí') + 0.05, 0.3, ate=0.45)
+put(C + 'slam_02.ogg', W('virada') + 0.02, 0.65)
+put(C2 + 'sfx100v2_wood_hit_01.ogg', W('virada') + 0.04, 0.4)
 # 1904→1914: calendário e guerra
 for i in range(6): put('soundjay/misc/page-flip-02.mp3', W('dez') + i * 0.12, 0.15)
 put(O + '25-cc0-bang-firework-sfx/cannon_02.ogg', W('guerra') - 0.05, 0.2)
@@ -108,6 +114,7 @@ tr = tr[:N].copy()
 def corta(t0, t1, f=0.06):
     a, b = int(t0 * SR), int(t1 * SR); fl = int(f * SR); tr[a - fl:a] *= np.linspace(1, 0, fl); tr[a:b] = 0; tr[b:b + fl * 3] *= np.linspace(0, 1, fl * 3)
 corta(W('aí') - 0.4, W('detalhe') - 0.3)
+corta(W('com') - 0.15, W('relógio', 1) - 0.1)
 cx = ler(S + 'caixa.wav'); a0 = int((W('dez') - 0.1) * SR); a1 = int((W('detalhe') - 0.4) * SR)
 lp_ = np.tile(cx, (a1 - a0) // len(cx) + 1)[:a1 - a0] * 0.5; lp_[-int(0.3 * SR):] *= np.linspace(1, 0, int(0.3 * SR)); tr[a0:a1] += lp_
 tr[-int(1.2 * SR):] *= np.linspace(1, 0, int(1.2 * SR))
