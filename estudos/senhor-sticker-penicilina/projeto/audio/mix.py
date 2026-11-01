@@ -1,6 +1,6 @@
 import sys, json, subprocess, numpy as np
 sys.path.insert(0, '/mnt/project-files/ferramentas'); import sfx
-SR = 48000; DUR = 75.5
+SR = 48000; DUR = 76.0
 def ler(p, filtro=None):
     cmd = ['ffmpeg', '-v', 'error', '-i', p] + (['-af', filtro] if filtro else []) + ['-ac', '1', '-ar', str(SR), '-f', 'f32le', '-']
     return np.frombuffer(subprocess.run(cmd, check=True, capture_output=True).stdout, dtype=np.float32).copy()

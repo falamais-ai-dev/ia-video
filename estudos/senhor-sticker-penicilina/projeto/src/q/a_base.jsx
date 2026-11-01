@@ -10,7 +10,7 @@ import {PALAVRAS} from './palavras';
 import {Borrao, Aquece} from './cinema';
 import {PosToon} from './pos';
 
-export const DUR_PN = Math.round(75.5 * 30);
+export const DUR_PN = Math.round(76 * 30);
 const IN = getInputProps();
 const io = Easing.inOut(Easing.cubic);
 const back = Easing.out(Easing.back(1.8));

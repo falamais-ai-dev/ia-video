@@ -10,7 +10,7 @@ import {PALAVRAS} from './palavras';
 import {Borrao, Aquece} from './cinema';
 import {PosToon} from './pos';
 
-export const DUR_PN = Math.round(75.5 * 30);
+export const DUR_PN = Math.round(76 * 30);
 const IN = getInputProps();
 const io = Easing.inOut(Easing.cubic);
 const back = Easing.out(Easing.back(1.8));
@@ -907,7 +907,7 @@ const faceFl = (t) => expr(t, [
 ], 0.2);
 const fleming = (t) => {
   const F = faceFl(t); let pos = B0, ry = 0, mP = null, mN = null, inc = 0, cab = [0, 0, 0], pe = null, vis = true, mala = 0, chapeu = 0, praia = 0, placa = null, alt = 0, estica = 0, frasco = null;
-  if (t < 2.25) { // tchau na porta, de mala e chapéu
+  if (t < TM.salvou - 0.19) { // tchau na porta, de mala e chapéu
     pos = DOOR; ry = 0.35; mala = 1; chapeu = 1;
     mP = PM(pos, ry, [0.3, 1.25 + Math.sin(t * 12) * 0.05, 0.1 + Math.sin(t * 12) * 0.03]); mN = PM(pos, ry, [-0.24, 0.33, 0.04]);
   } else if (t < TM.londres) { // nos ombros da multidão (rua)
@@ -1047,10 +1047,10 @@ const mae = (t) => {
 // ---------- estado do laboratório ----------
 const MESES = ['AGO\n1928', 'SET\n1928'];
 const labEstado = (t) => {
-  const bal = Math.sin(t * 6) * (t < 2.2 ? 1.2 : t > TM.placas && t < TM.pia ? 1.5 : t > TM.semanas && t < TM.alguma ? 0.4 : 0.3);
+  const bal = Math.sin(t * 6) * (t < TM.salvou - 0.2 ? 1.2 : t > TM.placas && t < TM.pia ? 1.5 : t > TM.semanas && t < TM.alguma ? 0.4 : 0.3);
   const nPia = t < TM.empilhadas ? 14 : Math.min(26, 14 + Math.floor((t - TM.empilhadas) * 12));
-  const porta = t < 2.25 ? 1 : (t > TM.ferias2 + 0.3 && t < TM.sem2 + 0.2 ? 1 - cl((t - TM.sem2) / 0.2) : (t > TM.volta - 0.15 && t < TM.pegou ? 1 : 0));
-  const placaFerias = t < 2.25 || (t > TM.sem2 - 0.1 && t < TM.volta + 0.4);
+  const porta = t < TM.salvou - 0.19 ? 1 : (t > TM.ferias2 + 0.3 && t < TM.sem2 + 0.2 ? 1 - cl((t - TM.sem2) / 0.2) : (t > TM.volta - 0.15 && t < TM.pegou ? 1 : 0));
+  const placaFerias = t < TM.salvou - 0.19 || (t > TM.sem2 - 0.1 && t < TM.volta + 0.4);
   const balPlaca = t > TM.sem2 ? (t - TM.sem2) * 9 : 0;
   const gaveta = t > TM.descoberta + 0.5 && t < TM.esquecida2 + 0.2 ? kf(t, [[TM.descoberta + 0.5, 0], [TM.descoberta + 0.8, 1], [TM.esquecida2, 1], [TM.esquecida2 + 0.2, 0]]) : 0;
   const teia = kf(t, [[TM.dez - 0.3, 0], [TM.anos + 0.3, 1]]);
