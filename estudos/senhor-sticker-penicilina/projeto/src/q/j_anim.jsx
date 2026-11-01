@@ -47,7 +47,7 @@ const fleming = (t) => {
   } else if (t < TM.so) { // trabalhando na bancada
     pos = B0; inc = t < TM.colegas ? 0.32 : 0.05; cab = t < TM.colegas ? [0.35, 0, 0] : [0, 0.25, 0];
     mP = PM(pos, ry, [0.2, 0.88, 0.32]); mN = PM(pos, ry, [-0.2, 0.88, 0.32]);
-  } else if (t < TM.saiu2 - 0.1) { // dá de ombros
+  } else if (t < TM.saiu2) { // dá de ombros
     const k = kf(t, [[TM.so, 0], [TM.ombros, 1, back], [TM.saiu2 - 0.15, 1]]);
     mP = PM(pos, ry, [0.32 + 0.05 * k, 0.5 + 0.48 * k, 0.12]); mN = PM(pos, ry, [-0.32 - 0.05 * k, 0.5 + 0.48 * k, 0.12]); alt = -0.04 * k; cab = [0, 0, 0.12 * k];
   } else if (t < TM.sem2) { // pega o chapéu e sai pela porta
@@ -74,7 +74,7 @@ const fleming = (t) => {
     const k = kf(t, [[TM.nao, 0], [TM.fabricar, 1]]);
     mP = PM(pos, ry, [0.15, 0.95 + 0.05 * k, 0.35]); mN = PM(pos, ry, [-0.12, 0.92, 0.33]); frasco = {p: add(mP, [0, 0.02, 0]), rot: [0, 0, -1.6 * k]}; inc = 0.15;
   } else if (t < TM.ate) { // guarda na gaveta
-    const C = caminho(t, [[TM.descoberta - 0.05, B0, -0.8], [TM.descoberta + 0.6, [-1.15, 0, -1.3], -2.6], [TM.esquecida2 + 0.1, [-1.15, 0, -1.3], -2.6], [TM.anos, [-0.2, 0, -1.6], 1.6]]);
+    const C = caminho(t, [[TM.descoberta - 0.05, B0, -0.8], [TM.descoberta + 0.6, [-1.15, 0, -1.3], -2.6], [TM.esquecida2 + 0.1, [-1.15, 0, -1.3], -2.6], [TM.anos, [-0.2, 0, -1.6], 1.6 - 2 * Math.PI]]);
     pos = [C.pos[0], quica(t, C.anda), C.pos[2]]; ry = C.ry; pe = C.anda ? passo(t) : null;
     const guarda = t > TM.descoberta + 0.6 && t < TM.esquecida2 + 0.1;
     mP = guarda ? [-1.42, 0.62, -1.45] : PM(pos, ry, [0.25, 0.6, 0.1]); mN = PM(pos, ry, [-0.24, 0.42, 0.04]); placa = t < TM.esquecida2 - 0.2 ? add(mP, [0, 0.02, 0]) : null; inc = guarda ? 0.3 : 0;

@@ -31,7 +31,7 @@ const Petri = ({p, rot = [0, 0, 0], s = 1, k = 'a', mofo = 0, limpo = 0, line = 
   </group>
 );
 // pilha de placas que balança
-const Pilha = ({p, n = 8, bal = 0, s = 1}) => <group position={p} scale={s}>{Array.from({length: n}).map((_, i) => <Petri key={i} k={'p' + (i % 4)} p={[Math.sin(i * 2.1) * 0.012 + bal * i * i * 0.0012, i * 0.02, Math.cos(i * 1.7) * 0.01]} rot={[0, i * 0.7, bal * i * 0.01]} line={0.35} />)}</group>;
+const Pilha = ({p, n = 8, bal = 0, s = 1}) => <group position={p} scale={s}>{Array.from({length: n}).map((_, i) => <Petri key={i} k={'p' + (i % 4)} p={[Math.sin(i * 2.1) * 0.006 + bal * i * 0.0022, i * 0.02, Math.cos(i * 1.7) * 0.005]} rot={[0, i * 0.7, bal * 0.04]} line={0.35} />)}</group>;
 const Xicara = ({p, s = 1, teia = 0}) => (
   <group position={p} scale={s}>
     <Ci rt={0.045} rb={0.035} h={0.07} p={[0, 0.035, 0]} m="#F4F0E6" line={0.6} seg={18} />

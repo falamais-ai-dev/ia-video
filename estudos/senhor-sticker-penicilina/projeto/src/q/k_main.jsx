@@ -193,7 +193,7 @@ const CenaQuarto = ({t}) => {
 const GRUPOS = (() => { const g = []; let i = 0; while (i < PALAVRAS.length) { const a = PALAVRAS[i], l = a.w.replace(/[.,!?:"]/g, ''); if (l.length <= 2 && i + 1 < PALAVRAS.length && !/[.,!?:]$/.test(a.w)) { g.push({txt: a.w + ' ' + PALAVRAS[i + 1].w, s: a.s, e: PALAVRAS[i + 1].e}); i += 2; } else { g.push({txt: a.w, s: a.s, e: a.e}); i++; } } return g; })();
 if (typeof document !== 'undefined' && !window.__montLE) {
   window.__montLE = true; const h = delayRender('fonte');
-  new FontFace('MontLE', `url(${staticFile('Montserrat-Black.woff2')})`, {weight: '900'}).load().then((f) => { document.fonts.add(f); continueRender(h); }).catch(() => continueRender(h));
+  window.__montLEp = new FontFace('MontLE', `url(${staticFile('Montserrat-Black.woff2')})`, {weight: '900'}).load().then((f) => { document.fonts.add(f); continueRender(h); }).catch(() => continueRender(h));
 }
 const limpa = (x) => x.replace(/"/g, '').replace(/\.\.\.$/, '').replace(/:$/, '');
 const Legenda = ({t}) => {
@@ -209,13 +209,16 @@ const Legenda = ({t}) => {
 const ALVOS = {lab: [0, 0.6, -1], col: [XCOL, 0.6, -1], pl: [XPL - 0.3, 0, -0.4], rua: [XRUA, 1, -1], fab: [XFAB, 0.6, -0.8], gue: [XGUE, 0.5, -0.5], nob: [XNOB, 0.8, -0.8], qua: [XQUA, 0.5, -0.8]};
 const AREAS = {lab: 3.2, col: 3.2, pl: 2, rua: 6, fab: 3.5, gue: 5, nob: 4, qua: 3.2};
 export const Penicilina = () => {
+  const [fonte, setFonte] = React.useState(fonteOk());
+  React.useLayoutEffect(() => { if (fonte) return; const h = delayRender('fonte das placas'); (window.__montLEp || Promise.resolve()).then(() => document.fonts.load('900 40px MontLE')).then(() => { setFonte(true); continueRender(h); }).catch(() => { setFonte(true); continueRender(h); }); }, []);
   const t = useCurrentFrame() / 30;
+  if (!fonte) return <AbsoluteFill style={{backgroundColor: '#D3E3F0'}} />;
   const c = camEm(t); const set = c.set;
   let chicote = 0; for (const tc of TROCAS) chicote += Math.max(0, Math.sin(cl((t - tc + 0.12) / 0.3) * Math.PI));
   const fora = set === 'rua' || set === 'gue' || set === 'nob';
   const tl = set === 'lab' && t > TM.semanas - 0.1 && t < TM.alguma; // time-lapse: dia e noite piscando
   const escuro = set === 'lab' && t > TM.nada && t < TM.volta - 0.1;
-  const kLuz = tl ? (Math.sin(t * 9) > 0 ? 1 : 0.35) : (escuro ? 0.4 : (set === 'pl' && t < TM.volta ? 0.6 : 1));
+  const kLuz = tl ? (0.65 + 0.35 * Math.sin(t * 6)) : (escuro ? 0.4 : (set === 'pl' && t < TM.volta ? 0.6 : 1));
   const tinta = tl && t > TM.esfriou && t < TM.esquentou ? 'rgba(90,150,255,0.28)' : (tl && t > TM.esquentou ? 'rgba(255,150,60,0.25)' : (escuro ? 'rgba(20,20,60,0.25)' : null));
   const flash = Math.max(fx01(t, TM.parou, 0.25) > 0 ? 1 - fx01(t, TM.parou, 0.25) : 0, fx01(t, TM.circulo, 0.3) > 0 ? (1 - fx01(t, TM.circulo, 0.3)) * 0.6 : 0, fx01(t, TM.morte, 0.2) > 0 ? (1 - fx01(t, TM.morte, 0.2)) * 0.5 : 0);
   const vinheta = t > TM.parou && t < TM.tinha2 ? 1 : 0;

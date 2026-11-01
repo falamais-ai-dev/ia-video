@@ -546,7 +546,7 @@ const Petri = ({p, rot = [0, 0, 0], s = 1, k = 'a', mofo = 0, limpo = 0, line = 
   </group>
 );
 // pilha de placas que balança
-const Pilha = ({p, n = 8, bal = 0, s = 1}) => <group position={p} scale={s}>{Array.from({length: n}).map((_, i) => <Petri key={i} k={'p' + (i % 4)} p={[Math.sin(i * 2.1) * 0.012 + bal * i * i * 0.0012, i * 0.02, Math.cos(i * 1.7) * 0.01]} rot={[0, i * 0.7, bal * i * 0.01]} line={0.35} />)}</group>;
+const Pilha = ({p, n = 8, bal = 0, s = 1}) => <group position={p} scale={s}>{Array.from({length: n}).map((_, i) => <Petri key={i} k={'p' + (i % 4)} p={[Math.sin(i * 2.1) * 0.006 + bal * i * 0.0022, i * 0.02, Math.cos(i * 1.7) * 0.005]} rot={[0, i * 0.7, bal * 0.04]} line={0.35} />)}</group>;
 const Xicara = ({p, s = 1, teia = 0}) => (
   <group position={p} scale={s}>
     <Ci rt={0.045} rb={0.035} h={0.07} p={[0, 0.035, 0]} m="#F4F0E6" line={0.6} seg={18} />
@@ -916,7 +916,7 @@ const fleming = (t) => {
   } else if (t < TM.so) { // trabalhando na bancada
     pos = B0; inc = t < TM.colegas ? 0.32 : 0.05; cab = t < TM.colegas ? [0.35, 0, 0] : [0, 0.25, 0];
     mP = PM(pos, ry, [0.2, 0.88, 0.32]); mN = PM(pos, ry, [-0.2, 0.88, 0.32]);
-  } else if (t < TM.saiu2 - 0.1) { // dá de ombros
+  } else if (t < TM.saiu2) { // dá de ombros
     const k = kf(t, [[TM.so, 0], [TM.ombros, 1, back], [TM.saiu2 - 0.15, 1]]);
     mP = PM(pos, ry, [0.32 + 0.05 * k, 0.5 + 0.48 * k, 0.12]); mN = PM(pos, ry, [-0.32 - 0.05 * k, 0.5 + 0.48 * k, 0.12]); alt = -0.04 * k; cab = [0, 0, 0.12 * k];
   } else if (t < TM.sem2) { // pega o chapéu e sai pela porta
@@ -943,7 +943,7 @@ const fleming = (t) => {
     const k = kf(t, [[TM.nao, 0], [TM.fabricar, 1]]);
     mP = PM(pos, ry, [0.15, 0.95 + 0.05 * k, 0.35]); mN = PM(pos, ry, [-0.12, 0.92, 0.33]); frasco = {p: add(mP, [0, 0.02, 0]), rot: [0, 0, -1.6 * k]}; inc = 0.15;
   } else if (t < TM.ate) { // guarda na gaveta
-    const C = caminho(t, [[TM.descoberta - 0.05, B0, -0.8], [TM.descoberta + 0.6, [-1.15, 0, -1.3], -2.6], [TM.esquecida2 + 0.1, [-1.15, 0, -1.3], -2.6], [TM.anos, [-0.2, 0, -1.6], 1.6]]);
+    const C = caminho(t, [[TM.descoberta - 0.05, B0, -0.8], [TM.descoberta + 0.6, [-1.15, 0, -1.3], -2.6], [TM.esquecida2 + 0.1, [-1.15, 0, -1.3], -2.6], [TM.anos, [-0.2, 0, -1.6], 1.6 - 2 * Math.PI]]);
     pos = [C.pos[0], quica(t, C.anda), C.pos[2]]; ry = C.ry; pe = C.anda ? passo(t) : null;
     const guarda = t > TM.descoberta + 0.6 && t < TM.esquecida2 + 0.1;
     mP = guarda ? [-1.42, 0.62, -1.45] : PM(pos, ry, [0.25, 0.6, 0.1]); mN = PM(pos, ry, [-0.24, 0.42, 0.04]); placa = t < TM.esquecida2 - 0.2 ? add(mP, [0, 0.02, 0]) : null; inc = guarda ? 0.3 : 0;
@@ -1276,7 +1276,7 @@ const CenaQuarto = ({t}) => {
 const GRUPOS = (() => { const g = []; let i = 0; while (i < PALAVRAS.length) { const a = PALAVRAS[i], l = a.w.replace(/[.,!?:"]/g, ''); if (l.length <= 2 && i + 1 < PALAVRAS.length && !/[.,!?:]$/.test(a.w)) { g.push({txt: a.w + ' ' + PALAVRAS[i + 1].w, s: a.s, e: PALAVRAS[i + 1].e}); i += 2; } else { g.push({txt: a.w, s: a.s, e: a.e}); i++; } } return g; })();
 if (typeof document !== 'undefined' && !window.__montLE) {
   window.__montLE = true; const h = delayRender('fonte');
-  new FontFace('MontLE', `url(${staticFile('Montserrat-Black.woff2')})`, {weight: '900'}).load().then((f) => { document.fonts.add(f); continueRender(h); }).catch(() => continueRender(h));
+  window.__montLEp = new FontFace('MontLE', `url(${staticFile('Montserrat-Black.woff2')})`, {weight: '900'}).load().then((f) => { document.fonts.add(f); continueRender(h); }).catch(() => continueRender(h));
 }
 const limpa = (x) => x.replace(/"/g, '').replace(/\.\.\.$/, '').replace(/:$/, '');
 const Legenda = ({t}) => {
@@ -1292,13 +1292,16 @@ const Legenda = ({t}) => {
 const ALVOS = {lab: [0, 0.6, -1], col: [XCOL, 0.6, -1], pl: [XPL - 0.3, 0, -0.4], rua: [XRUA, 1, -1], fab: [XFAB, 0.6, -0.8], gue: [XGUE, 0.5, -0.5], nob: [XNOB, 0.8, -0.8], qua: [XQUA, 0.5, -0.8]};
 const AREAS = {lab: 3.2, col: 3.2, pl: 2, rua: 6, fab: 3.5, gue: 5, nob: 4, qua: 3.2};
 export const Penicilina = () => {
+  const [fonte, setFonte] = React.useState(fonteOk());
+  React.useLayoutEffect(() => { if (fonte) return; const h = delayRender('fonte das placas'); (window.__montLEp || Promise.resolve()).then(() => document.fonts.load('900 40px MontLE')).then(() => { setFonte(true); continueRender(h); }).catch(() => { setFonte(true); continueRender(h); }); }, []);
   const t = useCurrentFrame() / 30;
+  if (!fonte) return <AbsoluteFill style={{backgroundColor: '#D3E3F0'}} />;
   const c = camEm(t); const set = c.set;
   let chicote = 0; for (const tc of TROCAS) chicote += Math.max(0, Math.sin(cl((t - tc + 0.12) / 0.3) * Math.PI));
   const fora = set === 'rua' || set === 'gue' || set === 'nob';
   const tl = set === 'lab' && t > TM.semanas - 0.1 && t < TM.alguma; // time-lapse: dia e noite piscando
   const escuro = set === 'lab' && t > TM.nada && t < TM.volta - 0.1;
-  const kLuz = tl ? (Math.sin(t * 9) > 0 ? 1 : 0.35) : (escuro ? 0.4 : (set === 'pl' && t < TM.volta ? 0.6 : 1));
+  const kLuz = tl ? (0.65 + 0.35 * Math.sin(t * 6)) : (escuro ? 0.4 : (set === 'pl' && t < TM.volta ? 0.6 : 1));
   const tinta = tl && t > TM.esfriou && t < TM.esquentou ? 'rgba(90,150,255,0.28)' : (tl && t > TM.esquentou ? 'rgba(255,150,60,0.25)' : (escuro ? 'rgba(20,20,60,0.25)' : null));
   const flash = Math.max(fx01(t, TM.parou, 0.25) > 0 ? 1 - fx01(t, TM.parou, 0.25) : 0, fx01(t, TM.circulo, 0.3) > 0 ? (1 - fx01(t, TM.circulo, 0.3)) * 0.6 : 0, fx01(t, TM.morte, 0.2) > 0 ? (1 - fx01(t, TM.morte, 0.2)) * 0.5 : 0);
   const vinheta = t > TM.parou && t < TM.tinha2 ? 1 : 0;
