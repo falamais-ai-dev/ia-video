@@ -1,4 +1,4 @@
-# Estilo Senhor Sticker: guia completo (base: lança x escudo v17, aprovado em 31/10/2026)
+# Estilo Senhor Sticker: guia completo (base: lança x escudo v17, aprovado em 31/10/2026; atualizado em 01/11/2026 com os vídeos 2 a 4, seção 14)
 
 Este guia descreve tudo o que foi feito no vídeo "lança x escudo" v17, que o Sebastião aprovou ("acho que assim ficou bom"). O objetivo é que uma sessão nova consiga fazer outro vídeo no mesmo padrão sem precisar perguntar nada.
 
@@ -182,7 +182,7 @@ Regras, todas aprendidas com erro:
 ---
 
 ## 6. Câmera
-1. **Um mundo só, com a câmera passeando:** travelling, grua e chicote. São cerca de 4 cortes secos em 16 s; o resto é movimento.
+1. **Sem cortes secos (regra desde 01/11/2026, ver seção 14.1).** No mesmo cenário, a câmera anda até o novo enquadramento (0,55 a 1,15 s). Na troca de cenário, fusão de 0,33 s. Nada de chicote com borrão. Um mundo só, com a câmera passeando: travelling e grua.
 2. A câmera está sempre em movimento. Cada plano é uma lista de keyframes `[tempo, posição, alvo, fov]` em `PLANOS`, com fov entre 44 e 50.
 3. **A câmera segue a ação.** Na corrida, `segueCorrida` acompanha o rei pelo x dele. No ninho, `segueNinho` acompanha o pássaro.
 4. **Ninguém encosta na borda.** O personagem fica inteiro no quadro: na v11, o soldado velho ficava cortado pela metade e o rei encostava na borda. Punhos erguidos também ficam longe da borda.
@@ -384,10 +384,70 @@ O detalhe está em `METODO-QUALIDADE-10.md` e no doc "Método nota 10". O resumo
 8. **Mix:** adapte o `mix2.py` (efeitos nas palavras, trilha com ducking, −14 LUFS). Faça a checagem de áudio da seção 9.4.
 9. **Vídeo inteiro:** dpr 2, crf 14 (cerca de 21 min). Depois a grade de QC e a nota às cegas pela rubrica. Se algum item ficar abaixo de 9, volte ao passo 7 só no trecho afetado.
 10. **Entrega:**
-    - o mp4 em crf 19 vai para `/mnt/project-files/testes/<nome>/`;
+    - o mp4 em crf 19 vai para `/mnt/project-files/testes/<nome>/` (trabalho) e a versão final para `/mnt/project-files/senhor-sticker/NN-AAAA-MM-DD-tema/` (ver seção 14.6);
     - junto vão a grade de QC, a thumb, `titulo-descricao.md` e um LEIA-ME com as notas;
     - depois, commit no repo em `estudos/<nome>/`.
 11. Não publique sem a decisão do Sebastião.
+
+---
+
+## 14. Lições dos vídeos 2 a 4 (Edison, penicilina e relógio, 01/11/2026)
+Projetos: `estudos/senhor-sticker-ideia/`, `estudos/senhor-sticker-penicilina/projeto/` e `estudos/senhor-sticker-relogio/projeto/`. O Sebastião aprovou os dois últimos dizendo "agora sim terá uma identidade".
+
+### 14.1 Câmera sem cortes secos (o que mais pesou)
+- Medição em `estudos/estudo-cortes/ESTUDO.md`: penicilina e relógio tinham cerca de 35 cortes secos por minuto, e o Ricks Clips tem 0,6. O ritmo de troca de plano é o mesmo (1 a 2 s); a diferença é que a imagem não salta. Com o relógio, o Sebastião "se sentiu mal".
+- Use `src/camera-suave.js`:
+  - no mesmo cenário, a câmera anda até o enquadramento novo em 0,55 a 1,15 s;
+  - na troca de cenário (ou quando o caminho é longo ou atravessaria algo), fusão de 0,33 s com a legenda nítida por cima.
+- Sem chicote com borrão. Tremor de câmera e flashes brancos pela metade. Queda de luz e tela preta entram aos poucos.
+- O único salto permitido é um impacto de propósito (o carimbo do plot twist).
+- Fusão em alta: o segundo cenário demora a carregar, então use timeout maior no render final (`--timeout` alto).
+- Cada fusão desenha dois cenários, então o render final leva cerca de 40 a 50 min.
+
+### 14.2 Coerência de objetos (glitches que o Sebastião viu)
+- **O mesmo objeto tem sempre a mesma aparência.** Uma porta não pode ser branca numa cena e marrom na outra; fechada por padrão, só abre quando a história pede.
+- **Nada atravessa nada:** porta abrindo para dentro atravessava o arquivo e a janela. Confira o arco de abertura das portas e o espaço em volta.
+- **Objeto na mão fica preso à mão** (a maleta solta no chão parecia glitch).
+- **Relógio de pulso vai no antebraço**, um pouco acima da mão, com tira abraçando o braço e em escala real. Na ponta do braço parece que a pessoa SEGURA o relógio.
+- **Não misture objetos parecidos:** pulseira de joia e relógio no mesmo pulso confundem. Se o tema é relógio, mostre relógio (o relógio feminino tem que ler como relógio).
+- **Escala realista** em objetos-tema (o relógio do Cartier saiu gigante).
+- **Acessório moderno tem que ser reconhecível:** fone sem fio = earbud branco com haste, não bolinha; estojo branco na mão.
+- **Cabelo e coque presos à cabeça**, sem lascas soltas: confira o personagem de vários ângulos.
+- **Pilhas de objetos** (placas de Petri): o deslocamento por item tem que ser pequeno e suave, senão a pilha "entorta" quadro a quadro.
+- **Personagem voltando de um lugar** não pode girar 360°: normalize o ângulo final (ex.: `1.6 - 2π`).
+- **Luz de time-lapse** suave (seno lento), nunca alternando a cada quadro.
+- **Fonte das placas:** espere a fonte carregar (`delayRender`) antes de desenhar, senão alguns trechos do render saem com fonte errada.
+
+### 14.3 Cenas engraçadas (o que o Sebastião pediu e gostou)
+- **Brinque com as cenas.** Fala descritiva rápida ("com corrente, colete e bigode") em closes rápidos não se lê. Vire uma mini-paródia: "OS BIGODUDOS", com os três andando em câmera lenta, névoa e tom de filme de gângster, e um tema próprio no áudio. Use um nome próprio e não cite a obra parodiada.
+- **Plot twist precisa de piada e impacto,** não só de um carimbo:
+  - uma ação física (o Dumont vira a mesa e tudo voa);
+  - freeze no ar, sem cor e com vinheta vermelha;
+  - o carimbo bate grande e torto, com tremor e poeira;
+  - o coro olha chocado para a câmera;
+  - no som: estrondo da mesa e louça, silêncio e o carimbo na palavra "virada".
+- **Cenas de "depois"** (soldados voltando) mostram o tema em detalhe: um olha a hora, outro acerta o relógio do colega, outro acena mostrando o pulso.
+- **Mantenha o elenco de apoio com reações** (coro escondendo o relógio de bolso, gato em 3 cenas).
+
+### 14.4 Começo do vídeo
+- **Respiro de 0,45 s antes da primeira palavra** (adelay na voz e +0,45 s em todos os tempos). Com a fala colada no quadro 0, o Sebastião achou que "cortou o início".
+- Todo tempo de cena vem de `TM`/palavras: nada de segundo fixo no código (ex.: `t < 4.3`), senão o deslocamento quebra a sincronia.
+
+### 14.5 Áudio
+- Efeitos que não existem no acervo são sintetizados em código e creditados (`audio/sint.py`): risada de plateia, motor de dirigível, vento, "dun-dun-dun", caixa de marcha, tema de gângster, multidão, aplausos, coro, trombone triste, grilos, disco arranhado, fanfarra, avião, porco e miado bravo.
+- Trilha Mixkit com cortes dramáticos (some no plot twist e nos silêncios de piada). No trecho de guerra, troque por caixa de marcha sintetizada.
+- Créditos: OpenGameArt é CC0. Soundjay **não** é CC0 (licença gratuita do soundjay.com, com crédito).
+
+### 14.6 Organização e entrega
+- **Pasta das finais:** `/mnt/project-files/senhor-sticker/NN-AAAA-MM-DD-tema/`, com `video.mp4`, a thumb, `titulo-descricao.md` e `creditos.txt`. O número é sequencial e a data é a da versão final. O índice fica em `senhor-sticker/LEIA-ME.md`, e o próximo vídeo é o 05.
+- **Fluxo:**
+  1. 3 propostas de roteiro para o Sebastião escolher;
+  2. prévia em baixa (dpr 0,5, crf 26, cerca de 1 min no PC) para aprovar;
+  3. ajustes;
+  4. final em alta (dpr 2, crf 14 no PC, cópia crf 19 no repo).
+- **Título:** siga a seção 12 (cada palavra em maiúscula, sem emoji). O vídeo 04 saiu fora do padrão ("Santos Dumont foi zoado por usar pulseira ⌚"). Versão no padrão: "Santos Dumont Foi Zoado Por Usar Pulseira".
+- **Thumb:** mesmo método da seção 12, com texto em duas partes (gancho em cima, virada embaixo) e cores de destaque escolhidas por vídeo.
+- **Divisão de trabalho:** a sessão da nuvem cuida de roteiro, voz, mixagem, thumb e entrega; o PC do Sebastião (Remote Control) cuida das cenas e dos renders. Só um lado edita cada `.jsx` por vez.
 
 ---
 
