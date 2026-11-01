@@ -794,7 +794,7 @@ const PLANOS = [
   {t0: TM.o6 - 0.05, set: 'par', keys: [[TM.o6 - 0.05, [XPAR + 0.95, 1.3, -0.65], [XPAR + 1.4, 1.15, -1.75], 36], [TM.pulseira + 0.2, [XPAR + 0.95, 1.25, -0.7], [XPAR + 1.35, 1.1, -1.75], 34], [TM.mas - 0.05, [XPAR + 0.95, 1.15, -0.8], [XPAR + 0.95, 0.85, -1.7], 32]]},
   {t0: TM.mas - 0.05, set: 'par', keys: [[TM.mas - 0.05, [XPAR + 0.3, 1.2, 1.8], [XPAR - 0.4, 0.9, -1.0], 46], [TM.voa - 0.05, [XPAR + 1.0, 1.2, 1.7], [XPAR + 0.8, 0.9, -0.6], 44]]},
   // campo: 14-bis passa rente
-  {t0: TM.voa - 0.05, set: 'cam', keys: [[TM.voa - 0.05, [XCAM - 1.0, 0.45, 3.2], [XCAM - 2.6, 1.0, -0.2], 50], [TM.cronometra, [XCAM - 0.6, 0.5, 3.0], [XCAM - 0.4, 1.1, -0.2], 48, lin]]},
+  {t0: TM.voa - 0.05, set: 'cam', keys: [[TM.voa - 0.05, [XCAM - 1.2, 0.5, 5.2], [XCAM - 2.6, 1.0, -0.2], 46], [TM.cronometra, [XCAM - 0.7, 0.55, 5.0], [XCAM - 0.4, 1.1, -0.2], 44, lin]]},
   {t0: TM.cronometra, set: 'cam', keys: [[TM.cronometra, [XCAM - 0.3, 1.3, 3.6], [XCAM - 0.2, 1.0, -0.2], 40], [TM.ai - 0.05, [XCAM + 2.5, 1.3, 3.6], [XCAM + 3.0, 1.0, -0.2], 40, lin]]},
   // virada (preto com carimbo) e calendário
   {t0: TM.ai - 0.05, set: 'cal', keys: [[TM.ai - 0.05, [XCAL, 1.6, 1.0], [XCAL, 1.6, -2.1], 44], [TM.dez, [XCAL, 1.6, 0.9], [XCAL, 1.6, -2.1], 44]]},
