@@ -7,7 +7,8 @@ import {ThreeCanvas} from '@remotion/three';
 import {useThree} from '@react-three/fiber';
 import {T, B, HULL, Tn, Esf, Cx, Ci, Co, Linha, canvasTex, PRATA, OURO, FERRO, MAT, GRAD, LINHA, Boneco, maoRepouso, Brilho, Faisca, Gota, Velocidade, Nuvem, CAB_ACESA, BigodeGuidao, Cavanhaque, Avental} from './toon2';
 import {PALAVRAS} from './palavras';
-import {Borrao, Aquece} from './cinema';
+import {Aquece} from './cinema';
+import {fazCameraSuave, FUSAO} from './camera-suave';
 import {PosToon} from './pos';
 
 export const DUR_RL = Math.ceil((PALAVRAS[PALAVRAS.length - 1].e + 0.6) * 30);
@@ -306,7 +307,7 @@ const Touca = () => <group position={[0, 0.3, 0]}><Ci rt={0.12} rb={0.15} h={0.0
 const CEU = new THREE.ShaderMaterial({side: THREE.BackSide, depthWrite: false, fog: false,
   vertexShader: 'varying vec3 vp; void main(){ vp = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
   uniforms: {noite: {value: 0}}, fragmentShader: 'uniform float noite; varying vec3 vp; void main(){ float h = clamp(vp.y*1.5+0.05,0.0,1.0); vec3 c = mix(vec3(0.86,0.93,0.98), vec3(0.24,0.52,0.9), pow(h,0.6)); vec3 n = mix(vec3(0.62,0.45,0.78), vec3(0.18,0.16,0.42), pow(h,0.6)); gl_FragColor = vec4(mix(c, n, noite),1.0); }'});
-const Ceu = ({c, noite = 0}) => { CEU.uniforms.noite.value = noite; return <mesh position={c.pos} material={CEU} renderOrder={-1}><sphereGeometry args={[650, 32, 16]} /></mesh>; };
+const Ceu = ({c, noite = 0}) => { const m = React.useMemo(() => CEU.clone(), []); m.uniforms.noite.value = noite; return <mesh position={c.pos} material={m} renderOrder={-1}><sphereGeometry args={[650, 32, 16]} /></mesh>; };
 const Sol = ({alvo, area, luz: kLuz = 1, dir = [-8, 6.4, 5]}) => {
   const k = Math.max(1, area / 4);
   const tgt = React.useMemo(() => new THREE.Object3D(), []);
@@ -764,14 +765,14 @@ const PLANOS = [
   {t0: TM.zoado - 0.05, set: 'par', keys: [[TM.zoado - 0.05, [XPAR + 0.2, 1.55, 2.6], [XPAR, 0.85, -0.4], 46], [TM.pulseirinha - 0.1, [XPAR + 0.1, 1.45, 2.2], [XPAR, 0.9, -0.4], 44]]},
   {t0: TM.pulseirinha - 0.1, set: 'par', keys: [[TM.pulseirinha - 0.1, [XPAR + 0.05, 1.3, 1.3], [XPAR, 1.15, -0.4], 32], [TM.pulseirinha + 0.15, [XPAR + 0.05, 1.28, 1.2], [XPAR, 1.15, -0.4], 22, outQ], [TM.em2, [XPAR + 0.05, 1.28, 1.15], [XPAR, 1.15, -0.4], 21]]},
   // desfile em plongée e o relógio de bolso sincronizado
-  {t0: TM.em2, set: 'par', keys: [[TM.em2, [XPAR - 3.2, 3.6, 1.8], [XPAR - 2.2, 0.5, -1.0], 44], [TM.relogio - 0.1, [XPAR - 1.6, 3.2, 1.6], [XPAR - 1.2, 0.5, -1.0], 44]]},
+  {t0: TM.em2, set: 'par', funde: true, keys: [[TM.em2, [XPAR - 3.2, 3.6, 1.8], [XPAR - 2.2, 0.5, -1.0], 44], [TM.relogio - 0.1, [XPAR - 1.6, 3.2, 1.6], [XPAR - 1.2, 0.5, -1.0], 44]]},
   {t0: TM.relogio - 0.1, set: 'par', keys: [[TM.relogio - 0.1, [XPAR - 0.3, 1.25, 1.2], [XPAR - 1.6, 1.0, -1.0], 40], [TM.corrente, [XPAR - 0.4, 1.2, 0.9], [XPAR - 1.5, 1.05, -1.0], 38]]},
   {t0: TM.corrente, set: 'par', keys: [[TM.corrente, [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.25, 0.8, 0.3], [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.7, -0.95], 26], [TM.colete, [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.22, 0.79, 0.2], [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.7, -0.95], 22]]},
   {t0: TM.colete, set: 'par', keys: [[TM.colete, [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.25, 0.82, 0.45], [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.72, -0.75], 26], [TM.bigode, [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.22, 0.81, 0.35], [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.72, -0.75], 22]]},
   {t0: TM.bigode, set: 'par', keys: [[TM.bigode, [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.3, 1.25, 0.2], [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.06, 1.24, -0.98], 22], [TM.relogio2 - 0.05, [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.28, 1.25, 0.1], [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.06, 1.24, -0.98], 18]]},
   // vitrine
   {t0: TM.relogio2 - 0.05, set: 'par', keys: [[TM.relogio2 - 0.05, [XPAR + 3.3, 1.0, -1.7], [XPAR + 3.3, 0.65, -2.95], 40], [TM.isso - 0.1, [XPAR + 3.3, 0.9, -2.0], [XPAR + 3.3, 0.65, -2.95], 34]]},
-  {t0: TM.isso - 0.1, set: 'par', keys: [[TM.isso - 0.1, [XPAR + 1.7, 1.2, -1.2], [XPAR + 3.3, 0.8, -2.2], 44], [TM.so - 0.05, [XPAR + 1.8, 1.0, -1.3], [XPAR + 3.3, 0.5, -2.2], 44]]},
+  {t0: TM.isso - 0.1, set: 'par', funde: true, keys: [[TM.isso - 0.1, [XPAR + 1.7, 1.2, -1.2], [XPAR + 3.3, 0.8, -2.2], 44], [TM.so - 0.05, [XPAR + 1.8, 1.0, -1.3], [XPAR + 3.3, 0.5, -2.2], 44]]},
   // céu de Paris
   {t0: TM.so - 0.05, set: 'ceu', keys: [[TM.so - 0.05, [XCEU - 5, 2.0, 8], [XCEU, 1.3, 0], 46], [TM.ele - 0.05, [XCEU - 2.5, 2.2, 6.5], [XCEU, 1.2, 0], 44]]},
   {t0: TM.ele - 0.05, set: 'ceu', keys: [[TM.ele - 0.05, [XCEU + 0.7, 1.4, 2.7], [XCEU + 0.3, 0.8, 0.0], 40], [TM.la - 0.05, [XCEU + 0.7, 1.35, 2.45], [XCEU + 0.3, 0.8, 0.0], 38]]},
@@ -814,7 +815,7 @@ const PLANOS = [
   {t0: TM.detalhe - 0.05, set: 'par', keys: [[TM.detalhe - 0.05, [XPAR + 0.1, 1.35, 1.5], [XPAR, 1.15, -0.5], 38], [TM.oitocentos - 0.1, [XPAR + 0.08, 1.32, 1.2], [XPAR, 1.15, -0.5], 34]]},
   // palácio da rainha
   {t0: TM.oitocentos - 0.1, set: 'pal', keys: [[TM.oitocentos - 0.1, [XPAL, 1.5, 2.2], [XPAL, 1.0, -0.8], 44], [TM.feito, [XPAL - 0.05, 1.4, 1.6], [XPAL - 0.1, 1.05, -0.8], 42]]},
-  {t0: TM.feito, set: 'pal', keys: [[TM.feito, [XPAL - 0.15, 1.45, 0.2], [XPAL - 0.3, 1.32, -0.75], 34], [TM.ele5 - 0.1, [XPAL - 0.15, 1.42, 0.05], [XPAL - 0.3, 1.32, -0.75], 30]]},
+  {t0: TM.feito, set: 'pal', keys: [[TM.feito, [XPAL - 0.1, 1.35, 0.8], [XPAL - 0.18, 1.2, -0.8], 34], [TM.ele5 - 0.1, [XPAL - 0.1, 1.33, 0.6], [XPAL - 0.18, 1.2, -0.8], 30]]},
   // callback: coro de relógio no pulso
   {t0: TM.ele5 - 0.1, set: 'par', keys: [[TM.ele5 - 0.1, [XPAR, 1.5, 2.6], [XPAR, 0.95, -0.5], 46], [TM.tipo - 0.05, [XPAR, 1.4, 2.2], [XPAR, 0.95, -0.5], 44]]},
   // quarto do "você"
@@ -824,25 +825,15 @@ const PLANOS = [
   {t0: TM.qual - 0.2, set: 'par', keys: [[TM.qual - 0.2, [XPAR + 0.05, 1.3, 1.3], [XPAR, 1.0, -0.5], 40], [TM.fim, [XPAR + 0.05, 1.25, 0.9], [XPAR, 1.05, -0.5], 38]]},
 ];
 const TREMORES = [[TM.zoado, 0.012], [TM.madame + 0.3, 0.015], [TM.torcer, 0.02], [TM.panqueca, 0.02], [TM.pulseira + 0.5, 0.01], [TM.voa + 0.3, 0.02], [TM.guerra, 0.02], [TM.lama, 0.015], [TM.tropa, 0.01]];
-const TROCAS = PLANOS.filter((p, i) => i > 0 && p.set !== PLANOS[i - 1].set).map((p) => p.t0);
-const camEm = (t) => {
-  let pl = PLANOS[0]; for (const p of PLANOS) if (t >= p.t0) pl = p;
-  const k = pl.keys; let i = 1; while (i < k.length - 1 && t > k[i][0]) i++;
-  const [t0, p0, l0, f0] = k[i - 1], [t1, p1, l1, f1, ez] = k[i];
-  const u = (ez || io)(cl((t - t0) / Math.max(1e-6, t1 - t0)));
-  const pos = mix(p0, p1, u), look = mix(l0, l1, u);
-  const d = Math.hypot(pos[0] - look[0], pos[1] - look[1], pos[2] - look[2]);
-  let tr = 0; for (const [a, amp] of TREMORES) if (t > a && t < a + 0.6) tr += amp * Math.exp(-(t - a) * 7);
-  const deriva = [Math.sin(t * 0.7) * 0.01 * d + Math.sin(t * 61) * tr, Math.sin(t * 0.9 + 1) * 0.005 * d + Math.cos(t * 53) * tr, 0];
-  return {pos: add(pos, deriva), look, fov: lerp(f0, f1, u), d, set: pl.set};
-};
+const SUAVE = fazCameraSuave(PLANOS, TREMORES);
+const camEm = SUAVE.em;
 const Cam = ({c}) => { const {camera} = useThree(); camera.position.set(...c.pos); camera.fov = c.fov; camera.near = 0.03; camera.far = 900; camera.updateProjectionMatrix(); camera.lookAt(...c.look); return null; };
 
 // ================= cenas =================
 const Desmaiado = ({P}) => <group position={P.pos} rotation={[0, P.ry, 0]}><group position={[0, 0, 0]} rotation={[-P.desmaio * 1.45, 0, 0]}><Boneco pos={[0, 0, 0]} ry={0} c={{...P.c, mP: P.desmaio > 0.5 ? [0.3, 0.3, -0.1] : [0.1, 1.0, 0.2], mN: P.desmaio > 0.5 ? [-0.3, 0.3, -0.1] : undefined}} /></group></group>;
 const CenaPar = ({t}) => {
   const SD = dumont(t); const Cs = [0, 1, 2, 3, 4, 5].map((k) => cavalheiro(t, k)); const Ss = [0, 1, 2, 3, 4].map((k) => soldado(t, k));
-  const jornal = t > TM.paris2 - 0.1 && t < TM.o6 ? kf(t, [[TM.paris2 - 0.1, 0], [TM.perdoa, 1, back]]) : 0;
+  const jornal = t > TM.paris2 - 0.1 && t < TM.o6 + 0.2 ? kf(t, [[TM.paris2 - 0.1, 0], [TM.perdoa, 1, back], [TM.o6 - 0.1, 1], [TM.o6 + 0.2, 0]]) : 0;
   const pq = t > TM.panqueca - 0.15 && t < TM.entao ? cl((t - TM.panqueca + 0.1) / 0.45) : 0;
   const desfile = t > TM.voltou - 0.2 && t < TM.bolso3;
   return (
@@ -1003,9 +994,10 @@ const Legenda = ({t}) => {
 };
 // carimbo "PLOT TWIST" no preto
 const PlotTwist = ({t}) => {
-  if (t < TM.ai - 0.05 || t > TM.dez) return null;
+  if (t < TM.ai - 0.3 || t > TM.dez + 0.25) return null;
   const k = kf(t, [[TM.virada - 0.05, 2.4], [TM.virada + 0.1, 1, outQ]]);
-  return <AbsoluteFill style={{backgroundColor: '#14101A', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+  const op = kf(t, [[TM.ai - 0.3, 0], [TM.ai - 0.05, 1], [TM.dez, 1], [TM.dez + 0.25, 0]]);
+  return <AbsoluteFill style={{opacity: op, backgroundColor: '#14101A', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
     {t > TM.virada - 0.05 ? <div style={{transform: `rotate(-12deg) scale(${k})`, border: '16px solid #E8333C', borderRadius: 28, padding: '20px 50px', fontFamily: 'MontLE', fontWeight: 900, fontSize: 150, color: '#E8333C', letterSpacing: 4}}>PLOT TWIST</div> : null}
   </AbsoluteFill>;
 };
@@ -1037,38 +1029,42 @@ const Balao = ({t}) => {
 // ================= montagem =================
 const ALVOS = {par: [XPAR, 0.6, -1], ceu: [XCEU, 0.6, 0], max: [XMAX, 0.6, -0.8], ofi: [XOFI, 0.6, -1], cam: [XCAM, 0.6, -0.5], cal: [XCAL, 1, -1.5], tri: [XTRI, 0.5, 0], vov: [XVOV, 0.5, -0.8], pal: [XPAL, 0.6, -0.8], qua: [XQUA, 0.5, -0.8]};
 const AREAS = {par: 5, ceu: 4, max: 3.2, ofi: 3.2, cam: 6, cal: 3, tri: 4, vov: 3.2, pal: 3.2, qua: 3.2};
-export const Relogio = () => {
-  const t = useCurrentFrame() / 30;
-  const c = camEm(t); const set = c.set;
-  let chicote = 0; for (const tc of TROCAS) chicote += Math.max(0, Math.sin(cl((t - tc + 0.12) / 0.3) * Math.PI));
+const Camada = ({t, c}) => {
+  const set = c.set;
   const fora = set === 'par' || set === 'ceu' || set === 'cam' || set === 'tri';
   const kLuz = set === 'tri' ? 0.6 : 1;
   const tinta = set === 'tri' ? 'rgba(90,110,150,0.18)' : (set === 'vov' ? 'rgba(255,190,120,0.12)' : null);
+  return <AbsoluteFill>
+    <ThreeCanvas width={1080} height={1920} dpr={IN.dpr || 2} shadows gl={{antialias: true}} camera={{fov: 50, position: [0, 2, 6]}}>
+      <Cam c={c} />
+      <fog attach="fog" args={[set === 'tri' ? '#9AA4B0' : (set === 'ceu' ? '#DCE8F4' : '#E8DFD0'), set === 'ceu' ? 30 : 14, set === 'ceu' ? 160 : (fora ? 70 : 40)]} />
+      <Ceu c={c} noite={set === 'tri' ? 0.4 : 0} />
+      <Sol alvo={ALVOS[set]} area={AREAS[set]} luz={kLuz} dir={[-8, 6.4, 5]} />
+      {set === 'par' ? <CenaPar t={t} /> : null}
+      {set === 'ceu' ? <CenaCeu t={t} /> : null}
+      {set === 'max' ? <CenaMax t={t} /> : null}
+      {set === 'ofi' ? <CenaOfi t={t} /> : null}
+      {set === 'cam' ? <CenaCam t={t} /> : null}
+      {set === 'cal' ? <CenaCal t={t} /> : null}
+      {set === 'tri' ? <CenaTri t={t} /> : null}
+      {set === 'vov' ? <CenaVov t={t} /> : null}
+      {set === 'pal' ? <CenaPal t={t} /> : null}
+      {set === 'qua' ? <CenaQua t={t} /> : null}
+      {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={fora && c.d > 4 ? 0.8 : 1.6} faixa={fora && c.d > 4 ? 6 : 2.4} longe={fora ? 80 : 40} sat={0.0} /></> : null}
+    </ThreeCanvas>
+    {tinta ? <AbsoluteFill style={{backgroundColor: tinta, mixBlendMode: 'multiply'}} /> : null}
+  </AbsoluteFill>;
+};
+export const Relogio = () => {
+  const t = useCurrentFrame() / 30;
+  const f = SUAVE.fusao(t);
+  const tA = f ? Math.max(t, f.t0) : t, tB = f ? Math.min(t, f.t0 - 0.12) : t;
   const flash = Math.max(fx01(t, TM.guerra, 0.25) > 0 ? 1 - fx01(t, TM.guerra, 0.25) : 0, fx01(t, TM.rainha, 0.2) > 0 ? (1 - fx01(t, TM.rainha, 0.2)) * 0.5 : 0, fx01(t, TM.tropa, 0.2) > 0 ? (1 - fx01(t, TM.tropa, 0.2)) * 0.4 : 0);
   return (
     <AbsoluteFill style={{backgroundColor: '#D3E3F0'}}>
-      <Borrao k={chicote * 0.9} />
-      <AbsoluteFill style={{filter: chicote > 0.02 ? 'url(#chicote)' : undefined}}>
-        <ThreeCanvas width={1080} height={1920} dpr={IN.dpr || 2} shadows gl={{antialias: true}} camera={{fov: 50, position: [0, 2, 6]}}>
-          <Cam c={c} />
-          <fog attach="fog" args={[set === 'tri' ? '#9AA4B0' : (set === 'ceu' ? '#DCE8F4' : '#E8DFD0'), set === 'ceu' ? 30 : 14, set === 'ceu' ? 160 : (fora ? 70 : 40)]} />
-          <Ceu c={c} noite={set === 'tri' ? 0.4 : 0} />
-          <Sol alvo={ALVOS[set]} area={AREAS[set]} luz={kLuz} dir={[-8, 6.4, 5]} />
-          {set === 'par' ? <CenaPar t={t} /> : null}
-          {set === 'ceu' ? <CenaCeu t={t} /> : null}
-          {set === 'max' ? <CenaMax t={t} /> : null}
-          {set === 'ofi' ? <CenaOfi t={t} /> : null}
-          {set === 'cam' ? <CenaCam t={t} /> : null}
-          {set === 'cal' ? <CenaCal t={t} /> : null}
-          {set === 'tri' ? <CenaTri t={t} /> : null}
-          {set === 'vov' ? <CenaVov t={t} /> : null}
-          {set === 'pal' ? <CenaPal t={t} /> : null}
-          {set === 'qua' ? <CenaQua t={t} /> : null}
-          {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={fora && c.d > 4 ? 0.8 : 1.6} faixa={fora && c.d > 4 ? 6 : 2.4} longe={fora ? 80 : 40} sat={0.0} /></> : null}
-        </ThreeCanvas>
-      </AbsoluteFill>
-      {tinta ? <AbsoluteFill style={{backgroundColor: tinta, mixBlendMode: 'multiply'}} /> : null}
-      {flash > 0 ? <AbsoluteFill style={{backgroundColor: `rgba(255,255,255,${flash * 0.8})`}} /> : null}
+      <Camada t={tA} c={camEm(tA)} />
+      <AbsoluteFill style={{opacity: f ? 1 - f.k : 0}}>{f ? <Camada t={tB} c={SUAVE.noPlano(f.i - 1, t)} /> : null}</AbsoluteFill>
+      {flash > 0 ? <AbsoluteFill style={{backgroundColor: `rgba(255,255,255,${flash * 0.45})`}} /> : null}
       <PlotTwist t={t} />
       <Contador t={t} />
       <Cronometro t={t} />

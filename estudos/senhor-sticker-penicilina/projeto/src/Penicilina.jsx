@@ -7,7 +7,8 @@ import {ThreeCanvas} from '@remotion/three';
 import {useThree} from '@react-three/fiber';
 import {T, B, HULL, Tn, Esf, Cx, Ci, Co, Linha, canvasTex, PRATA, OURO, FERRO, MAT, GRAD, LINHA, Boneco, maoRepouso, Brilho, Faisca, Gota, Velocidade, Nuvem, CAB_ACESA, BigodeGuidao, Cavanhaque} from './toon2';
 import {PALAVRAS} from './palavras';
-import {Borrao, Aquece} from './cinema';
+import {Aquece} from './cinema';
+import {fazCameraSuave, FUSAO} from './camera-suave';
 import {PosToon} from './pos';
 
 export const DUR_PN = Math.round(76 * 30);
@@ -724,16 +725,20 @@ const Pia = ({p, bal = 0, n = 14}) => (
     <Pilha p={[0.05, 0.86, 0.15]} n={5} bal={bal * 0.5} />
   </group>
 );
-const Porta = ({p, abre = 0, placa = true, txt = 'FÉRIAS!\nVOLTO EM SETEMBRO', bal = 0}) => (
-  <group position={p}>
-    <Cx a={[0.95, 2.05, 0.06]} p={[0, 1.025, -0.02]} m="#6A4022" line={0.8} />
-    <group position={[-0.42, 0, 0.02]} rotation={[0, -abre * 1.4, 0]}>
-      <Cx a={[0.84, 1.95, 0.05]} p={[0.42, 0.975, 0]} m="#9A6A3E" line={0.8} />
-      <Esf r={0.03} p={[0.76, 1.0, 0.04]} m={OURO()} line={0.4} seg={10} />
-      {placa ? <group position={[0.42, 1.42, 0.03]} rotation={[0, 0, Math.sin(bal) * 0.25 * Math.exp(-bal * 0.3)]}><Placa p={[0, -0.12, 0.01]} txt={txt} w={0.56} h={0.24} fundo="#FFF4D6" fio /></group> : null}
+const Porta = ({p, abre = 0, placa = true, txt = 'FÉRIAS!\nVOLTO EM SETEMBRO', bal = 0}) => {
+  const fecha = Math.cos(cl(abre) * Math.PI / 2); // a folha abre para fora do cômodo: nunca entra na sala
+  return (
+    <group position={p}>
+      <Cx a={[0.95, 2.05, 0.06]} p={[0, 1.025, -0.02]} m="#6A4022" line={0.8} />
+      <mesh position={[0, 0.975, 0.012]} material={B('#FFF0CF')}><planeGeometry args={[0.84, 1.95]} /></mesh>
+      {fecha > 0.02 ? <group position={[-0.42, 0, 0.02]} scale={[fecha, 1, 1]}>
+        <Cx a={[0.84, 1.95, 0.05]} p={[0.42, 0.975, 0]} m="#9A6A3E" line={0.8} />
+        <Esf r={0.03} p={[0.76, 1.0, 0.04]} m={OURO()} line={0.4} seg={10} />
+        {placa ? <group position={[0.42, 1.42, 0.03]} rotation={[0, 0, Math.sin(bal) * 0.25 * Math.exp(-bal * 0.3)]}><Placa p={[0, -0.12, 0.01]} txt={txt} w={0.56} h={0.24} fundo="#FFF4D6" fio /></group> : null}
+      </group> : null}
     </group>
-  </group>
-);
+  );
+};
 const Lab = ({t, I}) => (
   <group>
     <Sala x={XLAB} piso={PISO_LAB()} parede={PAREDE_LAB()} janela={[1.0, 0.9]} janX={-0.9} lambri="#7C8F7A" />
@@ -1092,10 +1097,10 @@ const PLANOS = [
   {t0: TM.placas, set: 'lab', keys: [[TM.placas, [-0.4, 1.95, -0.3], [-0.38, 0.95, -0.85], 40], [TM.pia, [-0.45, 1.65, -0.3], [-0.38, 1.0, -0.85], 36]]},
   {t0: TM.pia, set: 'lab', keys: [[TM.pia, [1.5, 1.45, -0.95], [1.8, 1.05, -1.85], 38], [TM.xicara, [1.55, 1.4, -1.05], [1.8, 1.05, -1.85], 36]]},
   {t0: TM.xicara, set: 'lab', keys: [[TM.xicara, [0.32, 1.08, -0.3], [0.18, 0.9, -0.75], 34], [TM.papel, [0.28, 1.02, -0.38], [0.18, 0.9, -0.75], 30]]},
-  {t0: TM.papel, set: 'lab', keys: [[TM.papel, [-0.6, 0.28, 0.7], [-0.3, 0.12, -0.6], 50], [TM.colegas, [-0.3, 0.32, 0.55], [0.0, 0.12, -0.6], 48]]},
+  {t0: TM.papel, set: 'lab', funde: true, keys: [[TM.papel, [-0.6, 0.28, 0.7], [-0.3, 0.12, -0.6], 50], [TM.colegas, [-0.3, 0.32, 0.55], [0.0, 0.12, -0.6], 48]]},
   {t0: TM.colegas, set: 'lab', keys: [[TM.colegas, [-0.75, 1.25, 1.3], [-1.3, 0.95, -1.3], 44], [TM.fleming2, [-0.8, 1.2, 1.0], [-1.3, 0.98, -1.3], 42]]},
   {t0: TM.fleming2, set: 'lab', keys: [[TM.fleming2, [-0.5, 1.25, 0.3], [-1.25, 1.05, -1.0], 36], [TM.chiqueiro, [-0.58, 1.22, 0.1], [-1.25, 1.05, -1.0], 33]]},
-  {t0: TM.chiqueiro + 0.05, set: 'lab', keys: [[TM.chiqueiro + 0.05, [-0.35, 0.5, 0.45], [-0.75, 0.22, -0.35], 40], [TM.so, [-0.38, 0.46, 0.35], [-0.75, 0.24, -0.35], 36]]},
+  {t0: TM.chiqueiro + 0.05, set: 'lab', funde: true, keys: [[TM.chiqueiro + 0.05, [-0.35, 0.5, 0.45], [-0.75, 0.22, -0.35], 40], [TM.so, [-0.38, 0.46, 0.35], [-0.75, 0.24, -0.35], 36]]},
   {t0: TM.so, set: 'lab', keys: [[TM.so, [0.35, 1.2, 0.35], [0.3, 1.0, -1.5], 40], [TM.saiu2, [0.33, 1.18, 0.15], [0.3, 1.0, -1.5], 38]]},
   {t0: TM.saiu2, set: 'lab', keys: [[TM.saiu2, [1.2, 1.5, 1.6], [-0.4, 0.9, -1.5], 46], [TM.sem2, [1.0, 1.5, 1.4], [-1.4, 0.9, -1.7], 46]]},
   {t0: TM.sem2, set: 'lab', keys: [[TM.sem2, [-1.45, 1.45, -0.3], [-1.95, 1.2, -2.15], 42], [TM.semanas - 0.1, [-1.55, 1.42, -0.6], [-1.95, 1.25, -2.15], 38]]},
@@ -1130,25 +1135,15 @@ const PLANOS = [
   {t0: TM.diga - 0.05, set: 'qua', keys: [[TM.diga - 0.05, [XQUA + 0.05, 0.95, 1.15], [XQUA, 0.82, -0.5], 38], [TM.fim, [XQUA + 0.05, 0.95, 0.85], [XQUA, 0.84, -0.5], 36]]},
 ];
 const TREMORES = [[TM.empilhadas, 0.01], [TM.chiqueiro + 0.1, 0.012], [TM.sem2 + 0.1, 0.02], [TM.parou, 0.02], [TM.verde, 0.015], [TM.guerra, 0.02], [TM.nobel, 0.015], [TM.massa, 0.012], [TM.arrumar, 0.012]];
-const TROCAS = PLANOS.filter((p, i) => i > 0 && p.set !== PLANOS[i - 1].set).map((p) => p.t0);
-const camEm = (t) => {
-  let pl = PLANOS[0]; for (const p of PLANOS) if (t >= p.t0) pl = p;
-  const k = pl.keys; let i = 1; while (i < k.length - 1 && t > k[i][0]) i++;
-  const [t0, p0, l0, f0] = k[i - 1], [t1, p1, l1, f1, ez] = k[i];
-  const u = (ez || io)(cl((t - t0) / Math.max(1e-6, t1 - t0)));
-  const pos = mix(p0, p1, u), look = mix(l0, l1, u);
-  const d = Math.hypot(pos[0] - look[0], pos[1] - look[1], pos[2] - look[2]);
-  let tr = 0; for (const [a, amp] of TREMORES) if (t > a && t < a + 0.6) tr += amp * Math.exp(-(t - a) * 7);
-  const deriva = [Math.sin(t * 0.7) * 0.01 * d + Math.sin(t * 61) * tr, Math.sin(t * 0.9 + 1) * 0.005 * d + Math.cos(t * 53) * tr, 0];
-  return {pos: add(pos, deriva), look, fov: lerp(f0, f1, u), d, set: pl.set};
-};
+const SUAVE = fazCameraSuave(PLANOS, TREMORES);
+const camEm = SUAVE.em;
 const Cam = ({c}) => { const {camera} = useThree(); camera.position.set(...c.pos); camera.fov = c.fov; camera.near = 0.05; camera.far = 700; camera.updateProjectionMatrix(); camera.lookAt(...c.look); return null; };
 
 // ---------- céu e luz ----------
 const CEU = new THREE.ShaderMaterial({side: THREE.BackSide, depthWrite: false, fog: false,
   vertexShader: 'varying vec3 vp; void main(){ vp = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
   uniforms: {noite: {value: 0}}, fragmentShader: 'uniform float noite; varying vec3 vp; void main(){ float h = clamp(vp.y*1.5+0.05,0.0,1.0); vec3 c = mix(vec3(0.86,0.93,0.98), vec3(0.24,0.52,0.9), pow(h,0.6)); vec3 n = mix(vec3(0.62,0.45,0.78), vec3(0.18,0.16,0.42), pow(h,0.6)); gl_FragColor = vec4(mix(c, n, noite),1.0); }'});
-const Ceu = ({c, noite = 0}) => { CEU.uniforms.noite.value = noite; return <mesh position={c.pos} material={CEU} renderOrder={-1}><sphereGeometry args={[650, 32, 16]} /></mesh>; };
+const Ceu = ({c, noite = 0}) => { const m = React.useMemo(() => CEU.clone(), []); m.uniforms.noite.value = noite; return <mesh position={c.pos} material={m} renderOrder={-1}><sphereGeometry args={[650, 32, 16]} /></mesh>; };
 const Sol = ({alvo, area, luz: kLuz = 1, dir = [-8, 6.4, 5]}) => {
   const k = Math.max(1, area / 4);
   const tgt = React.useMemo(() => new THREE.Object3D(), []);
@@ -1187,7 +1182,7 @@ const CenaLab = ({t}) => {
     <group>
       <Lab t={t} I={I} />
       {FL.vis && FL.pos[0] < XRUA - 10 ? <Boneco pos={FL.pos} ry={FL.ry} c={FL.c} /> : null}
-      {FL.vis && FL.mala && FL.c.mN ? <Mala p={add(FL.c.mN, [0, -0.13, 0])} rot={[0, FL.ry, 0]} /> : null}
+      {FL.vis && FL.mala && FL.c.mN ? <Mala p={add(FL.c.mN, [0, -0.155, 0])} rot={[0, FL.ry, 0]} /> : null}
       {FL.vis && FL.placa && FL.pos[0] < XRUA - 10 ? <Petri p={add(FL.placa, [0, -0.01, 0])} k="fl" mofo={t > TM.pegou ? 1 : 0} limpo={t > TM.pegou ? 1 : 0} s={1.2} /> : null}
       {FL.frasco ? <group position={FL.frasco.p} rotation={FL.frasco.rot}><Frasco p={[0, -0.06, 0]} cor="#F2C94C" nivel={0.2} /></group> : null}
       {FL.frasco ? <><Gota id={31} p={add(FL.frasco.p, [0.14, -0.02, 0])} k={fx01(t, TM.fabricar + 0.1, 0.5)} s={0.06} /><Fumaca id={5} p={add(FL.frasco.p, [0.05, 0.1, 0])} k={fx01(t, TM.remedio, 0.8)} s={0.35} /></> : null}
@@ -1291,43 +1286,49 @@ const Legenda = ({t}) => {
 
 const ALVOS = {lab: [0, 0.6, -1], col: [XCOL, 0.6, -1], pl: [XPL - 0.3, 0, -0.4], rua: [XRUA, 1, -1], fab: [XFAB, 0.6, -0.8], gue: [XGUE, 0.5, -0.5], nob: [XNOB, 0.8, -0.8], qua: [XQUA, 0.5, -0.8]};
 const AREAS = {lab: 3.2, col: 3.2, pl: 2, rua: 6, fab: 3.5, gue: 5, nob: 4, qua: 3.2};
+// uma camada de animação: o cenário do plano, visto pela câmera c, no instante t
+const Camada = ({t, c}) => {
+  const set = c.set;
+  const fora = set === 'rua' || set === 'gue' || set === 'nob';
+  const tl = set === 'lab' && t > TM.semanas - 0.1 && t < TM.alguma; // time-lapse: dia e noite piscando
+  const escuro = set === 'lab' && t > TM.nada && t < TM.volta - 0.1;
+  const apaga = kf(t, [[TM.nada - 0.1, 1], [TM.nada + 0.6, 0.4], [TM.volta - 0.6, 0.4], [TM.volta - 0.1, 1]]); // a luz cai e volta devagar
+  const kLuz = tl ? (0.65 + 0.35 * Math.sin(t * 6)) : (escuro ? apaga : (set === 'pl' && t < TM.volta ? 0.6 : 1));
+  const tinta = tl && t > TM.esfriou && t < TM.esquentou ? 'rgba(90,150,255,0.28)' : (tl && t > TM.esquentou ? 'rgba(255,150,60,0.25)' : (escuro ? 'rgba(20,20,60,0.25)' : null));
+  return <AbsoluteFill>
+    <ThreeCanvas width={1080} height={1920} dpr={IN.dpr || 2} shadows gl={{antialias: true}} camera={{fov: 50, position: [0, 2, 6]}}>
+      <Cam c={c} />
+      <fog attach="fog" args={[set === 'rua' ? '#C9CDD6' : (set === 'gue' ? '#D8C0A0' : '#E8DFD0'), set === 'rua' ? 7 : (fora ? 14 : 14), set === 'rua' ? 32 : (fora ? 60 : 40)]} />
+      <Ceu c={c} noite={set === 'gue' ? 0.45 : (set === 'rua' ? 0.12 : 0)} />
+      <Sol alvo={ALVOS[set]} area={AREAS[set]} luz={kLuz} dir={set === 'lab' ? [-6, 6.4, 6] : [-8, 6.4, 5]} />
+      {set === 'lab' ? <CenaLab t={t} /> : null}
+      {set === 'col' ? <CenaCol t={t} /> : null}
+      {set === 'pl' ? <CenaPlaca t={t} /> : null}
+      {set === 'rua' ? <CenaRua t={t} /> : null}
+      {set === 'fab' ? <CenaFab t={t} /> : null}
+      {set === 'gue' ? <CenaGuerra t={t} /> : null}
+      {set === 'nob' ? <CenaNobel t={t} /> : null}
+      {set === 'qua' ? <CenaQuarto t={t} /> : null}
+      {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={fora && c.d > 4 ? 0.8 : 1.6} faixa={fora && c.d > 4 ? 6 : 2.4} longe={fora ? 80 : 40} sat={0.0} /></> : null}
+    </ThreeCanvas>
+    {tinta ? <AbsoluteFill style={{backgroundColor: tinta, mixBlendMode: 'multiply'}} /> : null}
+  </AbsoluteFill>;
+};
 export const Penicilina = () => {
   const [fonte, setFonte] = React.useState(fonteOk());
   React.useLayoutEffect(() => { if (fonte) return; const h = delayRender('fonte das placas'); (window.__montLEp || Promise.resolve()).then(() => document.fonts.load('900 40px MontLE')).then(() => { setFonte(true); continueRender(h); }).catch(() => { setFonte(true); continueRender(h); }); }, []);
   const t = useCurrentFrame() / 30;
   if (!fonte) return <AbsoluteFill style={{backgroundColor: '#D3E3F0'}} />;
-  const c = camEm(t); const set = c.set;
-  let chicote = 0; for (const tc of TROCAS) chicote += Math.max(0, Math.sin(cl((t - tc + 0.12) / 0.3) * Math.PI));
-  const fora = set === 'rua' || set === 'gue' || set === 'nob';
-  const tl = set === 'lab' && t > TM.semanas - 0.1 && t < TM.alguma; // time-lapse: dia e noite piscando
-  const escuro = set === 'lab' && t > TM.nada && t < TM.volta - 0.1;
-  const kLuz = tl ? (0.65 + 0.35 * Math.sin(t * 6)) : (escuro ? 0.4 : (set === 'pl' && t < TM.volta ? 0.6 : 1));
-  const tinta = tl && t > TM.esfriou && t < TM.esquentou ? 'rgba(90,150,255,0.28)' : (tl && t > TM.esquentou ? 'rgba(255,150,60,0.25)' : (escuro ? 'rgba(20,20,60,0.25)' : null));
+  const f = SUAVE.fusao(t);
+  const tA = f ? Math.max(t, f.t0) : t, tB = f ? Math.min(t, f.t0 - 0.12) : t;
   const flash = Math.max(fx01(t, TM.parou, 0.25) > 0 ? 1 - fx01(t, TM.parou, 0.25) : 0, fx01(t, TM.circulo, 0.3) > 0 ? (1 - fx01(t, TM.circulo, 0.3)) * 0.6 : 0, fx01(t, TM.morte, 0.2) > 0 ? (1 - fx01(t, TM.morte, 0.2)) * 0.5 : 0);
   const vinheta = t > TM.parou && t < TM.tinha2 ? 1 : 0;
   return (
     <AbsoluteFill style={{backgroundColor: '#D3E3F0'}}>
-      <Borrao k={chicote * 0.9} />
-      <AbsoluteFill style={{filter: chicote > 0.02 ? 'url(#chicote)' : undefined}}>
-        <ThreeCanvas width={1080} height={1920} dpr={IN.dpr || 2} shadows gl={{antialias: true}} camera={{fov: 50, position: [0, 2, 6]}}>
-          <Cam c={c} />
-          <fog attach="fog" args={[set === 'rua' ? '#C9CDD6' : (set === 'gue' ? '#D8C0A0' : '#E8DFD0'), set === 'rua' ? 7 : (fora ? 14 : 14), set === 'rua' ? 32 : (fora ? 60 : 40)]} />
-          <Ceu c={c} noite={set === 'gue' ? 0.45 : (set === 'rua' ? 0.12 : 0)} />
-          <Sol alvo={ALVOS[set]} area={AREAS[set]} luz={kLuz} dir={set === 'lab' ? [-6, 6.4, 6] : [-8, 6.4, 5]} />
-          {set === 'lab' ? <CenaLab t={t} /> : null}
-          {set === 'col' ? <CenaCol t={t} /> : null}
-          {set === 'pl' ? <CenaPlaca t={t} /> : null}
-          {set === 'rua' ? <CenaRua t={t} /> : null}
-          {set === 'fab' ? <CenaFab t={t} /> : null}
-          {set === 'gue' ? <CenaGuerra t={t} /> : null}
-          {set === 'nob' ? <CenaNobel t={t} /> : null}
-          {set === 'qua' ? <CenaQuarto t={t} /> : null}
-          {IN.pos !== false ? <><Aquece /><PosToon dpr={IN.dpr || 2} dof={IN.dof !== false} ao={IN.ao !== false} foco={c.look} bokeh={fora && c.d > 4 ? 0.8 : 1.6} faixa={fora && c.d > 4 ? 6 : 2.4} longe={fora ? 80 : 40} sat={0.0} /></> : null}
-        </ThreeCanvas>
-      </AbsoluteFill>
-      {tinta ? <AbsoluteFill style={{backgroundColor: tinta, mixBlendMode: 'multiply'}} /> : null}
+      <Camada t={tA} c={camEm(tA)} />
+      <AbsoluteFill style={{opacity: f ? 1 - f.k : 0}}>{f ? <Camada t={tB} c={SUAVE.noPlano(f.i - 1, t)} /> : null}</AbsoluteFill>
       {vinheta ? <AbsoluteFill style={{background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(20,10,30,0.55) 100%)'}} /> : null}
-      {flash > 0 ? <AbsoluteFill style={{backgroundColor: `rgba(255,255,255,${flash * 0.8})`}} /> : null}
+      {flash > 0 ? <AbsoluteFill style={{backgroundColor: `rgba(255,255,255,${flash * 0.45})`}} /> : null}
       {IN.semLegenda ? null : <Legenda t={t} />}
     </AbsoluteFill>
   );
