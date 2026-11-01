@@ -73,7 +73,7 @@ put(O + 'bubbles-pop/pop.ogg', W('efeito') - 0.1, 0.25)
 # fecho: a bola cai no gato (fofo, sem estrondo) e o ronco continua
 put(SW, W('gato') - 0.3, 0.4)
 put(BOING, W('prato') + 0.17, 0.5)
-put(O + '80-cc0-creature-sfx/cute_04.ogg', W('prato') + 0.35, 0.18)
+put('/tmp/ideia/audio/miado.wav', W('prato') + 0.22, 0.32)  # miado bravo sintetizado (miado.py)
 put(O + '80-cc0-creature-sfx/snore.ogg', W('prato') + 0.8, 0.3, ate=2.6)
 tr = ler('/mnt/project-files/acervo-trilhas/mixkit/mixkit-2.mp3')
 while len(tr) < N: tr = np.concatenate([tr, tr])

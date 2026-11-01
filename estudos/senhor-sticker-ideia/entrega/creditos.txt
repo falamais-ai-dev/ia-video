@@ -1,4 +1,5 @@
 Voz: ElevenLabs (elevenlabs.io), voz George, modelo eleven_v4.
 Trilha: "Comical" (Ahjay Stelino), Mixkit, licença gratuita Mixkit.
 Efeitos: OpenGameArt.org (100-cc0-sfx e 100-cc0-sfx-2 de rubberduck, 75-cc0-breaking-falling-hit-sfx, 80-cc0-creature-sfx, 30-cc0-sfx-loops, bubbles-pop, electricity-sound-effects, swishes-sound-pack: CC0); "comedy-boing" do Cozy SFX Sampler por roberto mellado (OpenGameArt.org), CC BY 4.0; bubbles-pop por farfadet46, electricity-sound-effects por BMacZero, swishes-sound-pack por artisticdude (CC0); SoundJay (button-46, pill-bottle-to-table-1), uso comercial livre.
+Miado bravo do gato: sintetizado em código (projeto/audio/miado.py), sem amostras de terceiros.
 Imagens: tudo modelado em código (Three.js + Remotion), sem IA de imagem e sem filmagem de terceiros.

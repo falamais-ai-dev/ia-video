@@ -621,8 +621,11 @@ const gatoOfi = (t) => {
   if (t < tp) { const u = cl((t - TM.barulhao - 0.04) / 0.38); return {pos: [lerp(G0[0], ancora[0], u), lerp(0.15, ancora[1] - 0.2, io(u)) + Math.sin(u * Math.PI) * 0.4, lerp(G0[2], ancora[2], u)], ry: -0.2, pose: 'salto', bal: -0.3 + u * 0.3, balLum: 0}; }
   if (t < TM.gato - 0.15) return {pos: ancora, ry: -0.25, pose: 'pendura', olhos: t < TM.pior ? 'grande' : 'bravo', eriça: kf(t, [[tp, 1], [TM.pior, 0.6]]), bal: balc, balLum: balc};
   // fim: enrolado em cima do prato da direita
-  const amassa = t > TM.prato + 0.17 ? settle(t, TM.prato + 0.17, 0.25, 16, 5) : 0;
-  return {pos: [0.47, 0.017, 0.12], ry: 0.15, pose: 'dorme', s: 0.92, amassa, olhos: t > TM.prato + 0.45 ? 'semi' : 'fechado', olhoD: t > TM.gato + 0.1 && t < TM.esse + 0.35 ? 'normal' : undefined};
+  // a bola cai na cabeça do gato: ele leva o susto, mia bravo e pula para fora do prato
+  const ti = TM.prato + 0.19, tp2 = ti + 0.1;
+  if (t < tp2) return {pos: [0.47, 0.017, 0.12], ry: 0.15, pose: 'dorme', s: 0.92, olhos: 'fechado', olhoD: t > TM.gato + 0.1 && t < TM.esse + 0.35 ? 'normal' : (t > ti ? 'grande' : undefined)};
+  const u = cl((t - tp2) / 1.3);
+  return {pos: [lerp(0.47, 1.45, u), 0.2 + Math.sin(Math.min(1, u * 1.15) * Math.PI) * 0.7, lerp(0.12, 0.55, u)], ry: -0.4, pose: 'salto', bal: -0.5 + u * 0.6, s: 0.92};
 };
 const ZZ_DE = (I) => cabDe(I.pos, 1, 0.02);
 
@@ -738,7 +741,7 @@ const PLANOS = [
   {t0: TM.tres, set: 'lab', keys: [[TM.tres, [XL + 0.45, 1.25, 3.1], [XL + 1.25, 1.15, 0.9], 44], [TM.truque - 0.02, [XL + 0.52, 1.25, 2.85], [XL + 1.25, 1.17, 0.9], 44]]},
   {t0: TM.truque, set: 'lab', keys: [[TM.truque, [XL - 0.4, 1.25, 2.4], [XL - 0.72, 0.98, 0.2], 44], [TM.ja - 0.02, [XL - 0.45, 1.22, 2.2], [XL - 0.72, 0.98, 0.2], 44]]},
   {t0: TM.ja, set: 'lab', keys: [[TM.ja, [XL + 0.25, 1.15, 2.1], [XL + 0.78, 0.78, 0.2], 44], [TG - 0.02, [XL + 0.3, 1.12, 1.85], [XL + 0.78, 0.8, 0.2], 44]]},
-  {t0: TG, set: 'ofi', keys: [[TG, [0.85, 0.55, 1.25], [0.45, 0.2, 0.12], 42], [TM.prato, [0.8, 0.6, 1.35], [0.42, 0.25, 0.1], 42], [TM.prato + 0.8, [0.6, 0.95, 2.3], [0.32, 0.55, 0.05], 46], [71, [0.58, 0.97, 2.4], [0.32, 0.57, 0.05], 46]]},
+  {t0: TG, set: 'ofi', keys: [[TG, [0.85, 0.55, 1.25], [0.45, 0.2, 0.12], 42], [TM.prato + 0.2, [0.8, 0.6, 1.35], [0.42, 0.25, 0.1], 42], [TM.prato + 0.9, [0.75, 0.9, 2.5], [0.6, 0.55, 0.15], 48], [71, [0.58, 0.97, 2.4], [0.32, 0.57, 0.05], 46]]},
 ];
 const TREMORES = [[TM.pratos2, 0.025], [TM.barulhao, 0.03], [TM.estrondo, 0.03], [TM.chave + 0.22, 0.012], [TM.cima, 0.015]];
 const camEm = (t) => {
