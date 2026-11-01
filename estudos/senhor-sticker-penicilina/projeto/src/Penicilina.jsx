@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import {AbsoluteFill, useCurrentFrame, Easing, getInputProps, staticFile, delayRender, continueRender} from 'remotion';
 import {ThreeCanvas} from '@remotion/three';
 import {useThree} from '@react-three/fiber';
-import {T, B, HULL, Tn, Esf, Cx, Ci, Co, Linha, canvasTex, PRATA, OURO, FERRO, MAT, GRAD, LINHA, Boneco, maoRepouso, Brilho, Faisca, Gota, Velocidade, Nuvem, CAB_ACESA, BigodeGuidao, Cavanhaque} from './toon2';
+import {T, B, HULL, Tn, Esf, Cx, Ci, Co, Linha, canvasTex, PRATA, OURO, FERRO, MAT, GRAD, LINHA, Boneco, maoRepouso, raioCab, Brilho, Faisca, Gota, Velocidade, Nuvem, CAB_ACESA, BigodeGuidao, Cavanhaque} from './toon2';
 import {PALAVRAS} from './palavras';
 import {Aquece} from './cinema';
 import {fazCameraSuave, FUSAO} from './camera-suave';
@@ -730,7 +730,7 @@ const Porta = ({p, abre = 0, placa = true, txt = 'FÉRIAS!\nVOLTO EM SETEMBRO', 
   return (
     <group position={p}>
       <Cx a={[0.95, 2.05, 0.06]} p={[0, 1.025, -0.02]} m="#6A4022" line={0.8} />
-      <mesh position={[0, 0.975, 0.012]} material={B('#FFF0CF')}><planeGeometry args={[0.84, 1.95]} /></mesh>
+      <mesh position={[0, 0.975, 0.012]} material={B('#5E3C22')}><planeGeometry args={[0.84, 1.95]} /></mesh>
       {fecha > 0.02 ? <group position={[-0.42, 0, 0.02]} scale={[fecha, 1, 1]}>
         <Cx a={[0.84, 1.95, 0.05]} p={[0.42, 0.975, 0]} m="#9A6A3E" line={0.8} />
         <Esf r={0.03} p={[0.76, 1.0, 0.04]} m={OURO()} line={0.4} seg={10} />
@@ -891,7 +891,8 @@ const Colar = () => <group position={[0, 0.8, 0.02]}>{Array.from({length: 14}).m
 const Oculos = () => <group>{[-1, 1].map((l) => <mesh key={l} position={[l * 0.062, 0.19, 0.162]} rotation={[0, l * 0.35, 0]} material={B(LINHA)}><torusGeometry args={[0.045, 0.006, 6, 20]} /></mesh>)}<Linha a={[-0.018, 0.2, 0.17]} b={[0.018, 0.2, 0.17]} r={0.005} /></group>;
 const Jaleco = () => <group>{[0.52, 0.62, 0.72].map((y, i) => <Esf key={i} r={0.012} p={[0.03, y, 0.18 - (y - 0.52) * 0.08]} m="#A9B4C6" line={0.3} seg={8} />)}<Cx a={[0.07, 0.07, 0.01]} p={[-0.08, 0.68, 0.16]} rot={[-0.15, 0.4, 0]} m="#DCE6EE" line={0.4} /></group>;
 const Topete = ({cor = '#6A4022'}) => <group><Tn geo={<sphereGeometry args={[0.17, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.4]} />} p={[0, 0.18, -0.01]} m={cor} line={0.6} /><Esf r={0.07} p={[0.03, 0.33, 0.07]} s={[1.3, 0.8, 1]} rot={[0.4, 0, 0.3]} m={cor} line={0.6} seg={12} /></group>;
-const Coque = ({cor = '#8A4A2A'}) => <group><Tn geo={<sphereGeometry args={[0.172, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.45]} />} p={[0, 0.17, -0.01]} m={cor} line={0.6} /><Esf r={0.08} p={[0, 0.36, -0.08]} m={cor} line={0.6} seg={12} /></group>;
+const geoCapelo = () => { const pts = []; for (let i = 0; i <= 24; i++) { const y = 0.19 + (0.345 - 0.19) * i / 24; pts.push(new THREE.Vector2(raioCab(y) * 1.05 + 0.004, y + 0.006)); } return new THREE.LatheGeometry(pts, 32); };
+const Coque = ({cor = '#8A4A2A'}) => <group><group position={[0, 0.2, 0]} rotation={[-0.32, 0, 0]}><group position={[0, -0.2, 0]}><Tn geo={React.useMemo(geoCapelo, [])} m={T(cor, {side: THREE.DoubleSide})} line={0.6} /></group></group><Esf r={0.085} p={[0, 0.36, -0.1]} m={cor} line={0.6} seg={14} /></group>;
 const Touca = () => <group position={[0, 0.3, 0]}><Ci rt={0.12} rb={0.15} h={0.08} m="#FFFFFF" line={0.6} seg={18} /><Cx a={[0.06, 0.018, 0.005]} p={[0, 0.0, 0.14]} m="#D8323C" line={0} /><Cx a={[0.018, 0.06, 0.005]} p={[0, 0.0, 0.14]} m="#D8323C" line={0} /></group>;
 const Etiqueta = ({txt, k}) => k > 0.01 ? <group position={[0, 1.55, 0]} scale={k}><Placa p={[0, 0, 0]} txt={txt} w={0.42} h={0.13} fundo="#FFFFFF" tinta="#2E4A6B" moldura="#2E4A6B" /></group> : null;
 
@@ -1054,7 +1055,7 @@ const MESES = ['AGO\n1928', 'SET\n1928'];
 const labEstado = (t) => {
   const bal = Math.sin(t * 6) * (t < TM.salvou - 0.2 ? 1.2 : t > TM.placas && t < TM.pia ? 1.5 : t > TM.semanas && t < TM.alguma ? 0.4 : 0.3);
   const nPia = t < TM.empilhadas ? 14 : Math.min(26, 14 + Math.floor((t - TM.empilhadas) * 12));
-  const porta = t < TM.salvou - 0.19 ? 1 : (t > TM.ferias2 + 0.3 && t < TM.sem2 + 0.2 ? 1 - cl((t - TM.sem2) / 0.2) : (t > TM.volta - 0.15 && t < TM.pegou ? 1 : 0));
+  const porta = t < TM.salvou - 0.19 ? 0 : (t > TM.ferias2 + 0.3 && t < TM.sem2 + 0.2 ? 1 - cl((t - TM.sem2) / 0.2) : (t > TM.volta - 0.15 && t < TM.pegou ? 1 : 0));
   const placaFerias = t < TM.salvou - 0.19 || (t > TM.sem2 - 0.1 && t < TM.volta + 0.4);
   const balPlaca = t > TM.sem2 ? (t - TM.sem2) * 9 : 0;
   const gaveta = t > TM.descoberta + 0.5 && t < TM.esquecida2 + 0.2 ? kf(t, [[TM.descoberta + 0.5, 0], [TM.descoberta + 0.8, 1], [TM.esquecida2, 1], [TM.esquecida2 + 0.2, 0]]) : 0;

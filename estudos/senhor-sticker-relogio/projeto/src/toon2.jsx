@@ -254,6 +254,8 @@ const Braco = ({s, h, dobra, mao = PELE}) => {
     </>
   );
 };
+// antebraço no mundo: cotovelo e mão, para pôr relógio no pulso
+export const antebraco = (pos, ry, lado, h, inc = 0) => { const y0 = OMB_Y - 0.42; const s = paraMundo(pos, ry, [lado * OMB, 0.42 + y0 * Math.cos(inc), y0 * Math.sin(inc)]); const [e, hh] = cotovelo(s, h, paraMundo([0, 0, 0], ry, [lado * 0.7, -0.6, -0.2])); return {e, h: hh}; };
 export const Boneco = ({pos, ry = 0, c}) => {
   const {cor, olhos = 'normal', boca = 'sorriso', sob = 0, olhar = [0, 0], cab = [0, 0, 0], estica = 0, resp = 0, alt = 0} = c;
   // camada de vida do rosto: o olhar salta e para, as sobrancelhas dão tiques, a cabeça nunca fica dura

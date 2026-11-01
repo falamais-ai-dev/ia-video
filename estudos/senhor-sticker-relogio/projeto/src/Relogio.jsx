@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import {AbsoluteFill, useCurrentFrame, Easing, getInputProps, staticFile, delayRender, continueRender} from 'remotion';
 import {ThreeCanvas} from '@remotion/three';
 import {useThree} from '@react-three/fiber';
-import {T, B, HULL, Tn, Esf, Cx, Ci, Co, Linha, canvasTex, PRATA, OURO, FERRO, MAT, GRAD, LINHA, Boneco, maoRepouso, Brilho, Faisca, Gota, Velocidade, Nuvem, CAB_ACESA, BigodeGuidao, Cavanhaque, Avental} from './toon2';
+import {T, B, HULL, Tn, Esf, Cx, Ci, Co, Linha, canvasTex, PRATA, OURO, FERRO, MAT, GRAD, LINHA, Boneco, maoRepouso, antebraco, Brilho, Faisca, Gota, Velocidade, Nuvem, CAB_ACESA, BigodeGuidao, Cavanhaque, Avental} from './toon2';
 import {PALAVRAS} from './palavras';
 import {Aquece} from './cinema';
 import {fazCameraSuave, FUSAO} from './camera-suave';
@@ -387,11 +387,27 @@ const RelPulso = ({p, rot = [0, 0, 0], s = 1, tira = 1, parafusos = 1, brilho = 
     {brilho > 0 ? <Brilho id={500 + id} p={[0.02, 0.02, 0.02]} k={brilho} s={0.08} /> : null}
   </group>
 );
-// relógio de pulso no braço de um boneco: fica entre a mão e o cotovelo
-const NoPulso = ({P, lado = -1, s = 1}) => { if (!P || P.vis === false) return null; const m = lado < 0 ? (P.c.mN || maoRepouso(P.pos, P.ry, -1)) : (P.c.mP || maoRepouso(P.pos, P.ry, 1)); const o = PM(P.pos, P.ry, [lado * 0.148, 0.79, 0]); const q = mix(m, o, 0.16);
-  return <RelPulso p={q} rot={[0, P.ry, 0]} s={0.55 * s} />; };
-// pulseira feminina (vitrine)
-const Pulseira = ({p, rot = [0, 0, 0], s = 1, cor = '#E84A8A'}) => <group position={p} rotation={rot} scale={s}><mesh material={OURO()}><torusGeometry args={[0.06, 0.008, 8, 24]} /></mesh>{[0, 1, 2, 3, 4, 5].map((i) => <Esf key={i} r={0.012} p={[Math.cos(i * 1.05) * 0.06, Math.sin(i * 1.05) * 0.06, 0.006]} m={[cor, '#7FD0E8', '#FFFFFF'][i % 3]} line={0.3} seg={8} />)}</group>;
+// relógio feminino delicado: aro fino de ouro, mostrador redondinho (é relógio, não pulseira)
+const texMostJoia = () => canvasTex('mostJoia', 128, 128, (g, w) => { g.fillStyle = '#FFFBF0'; g.fillRect(0, 0, w, w); g.strokeStyle = LINHA; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(w / 2, w / 2); g.lineTo(w / 2 + 22, w / 2 - 16); g.moveTo(w / 2, w / 2); g.lineTo(w / 2 - 6, w / 2 - 38); g.stroke(); });
+const FaceJoia = ({z, r = 0.024}) => <group position={[0, 0, z]}><Ci rt={r} h={0.008} rot={[Math.PI / 2, 0, 0]} m={OURO()} seg={18} line={0.4} /><mesh position={[0, 0, 0.0045]} material={MAT('mostJoiaM', () => new THREE.MeshBasicMaterial({map: texMostJoia()}))}><circleGeometry args={[r * 0.8, 18]} /></mesh></group>;
+// na vitrine: em braço de veludo, com o mostrador virado para a frente
+const RelJoiaVitrine = ({p, cor = '#3A2A4A'}) => <group position={p}>
+  <Ci rt={0.034} rb={0.042} h={0.26} rot={[0, 0, Math.PI / 2]} m={cor} seg={14} line={0.5} />
+  <group rotation={[0, Math.PI / 2, 0]}><mesh material={OURO()}><torusGeometry args={[0.042, 0.004, 6, 24]} /></mesh></group>
+  <FaceJoia z={0.046} r={0.036} />
+</group>;
+// relógio de pulso no braço de um boneco: acima da mão, com a tira abraçando o antebraço
+const NoPulso = ({P, lado = -1, s = 1.15, joia = false, frente}) => { if (!P || P.vis === false) return null;
+  const m = lado < 0 ? (P.c.mN || maoRepouso(P.pos, P.ry, -1)) : (P.c.mP || maoRepouso(P.pos, P.ry, 1));
+  const {e, h} = antebraco(P.pos, P.ry, lado, m, P.c.inc || 0);
+  const y = new THREE.Vector3(e[0] - h[0], e[1] - h[1], e[2] - h[2]).normalize();
+  const f = frente ? new THREE.Vector3(...frente) : new THREE.Vector3(Math.sin(P.ry), 0, Math.cos(P.ry));
+  const z = f.clone().addScaledVector(y, -f.dot(y)); if (z.lengthSq() < 1e-4) z.set(0, 1, 0).addScaledVector(y, -y.y); z.normalize();
+  const x = new THREE.Vector3().crossVectors(y, z); const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+  return <group position={mix(h, e, 0.3)} quaternion={q} scale={s}>
+    <group rotation={[Math.PI / 2, 0, 0]}><mesh material={joia ? OURO() : T('#7A4A26')}><torusGeometry args={[0.016, joia ? 0.003 : 0.007, 6, 18]} /></mesh></group>
+    {joia ? <FaceJoia z={0.02} r={0.02} /> : <group position={[0, 0, 0.02]}><Cx a={[0.044, 0.044, 0.01]} m={OURO()} line={0.5} /><mesh position={[0, 0, 0.0055]} material={MAT('mostM', () => new THREE.MeshBasicMaterial({map: texMostrador()}))}><planeGeometry args={[0.036, 0.036]} /></mesh></group>}
+  </group>; };
 const Cartola = ({cor = '#2B2629', y = 0.3, inc = 0}) => <group position={[0, y, 0]} rotation={[0, 0, inc]}><Ci rt={0.19} h={0.014} m={cor} line={0.6} seg={24} /><Ci rt={0.12} rb={0.125} h={0.26} p={[0, 0.13, 0]} m={cor} line={0.6} seg={20} /><Ci rt={0.127} h={0.04} p={[0, 0.03, 0]} m="#8A2E3C" line={0} seg={20} /></group>;
 // panamá do Dumont: aba larga e caída
 const Panama = ({y = 0.3}) => <group position={[0, y, 0]} rotation={[0.12, 0, 0]}>
@@ -407,7 +423,8 @@ const Colarinho = () => <group><Ci rt={0.105} rb={0.12} h={0.06} p={[0, 0.84, 0.
 const Corrente = () => <group><Linha a={[-0.11, 0.6, 0.165]} b={[0, 0.56, 0.18]} r={0.004} cor={DOURADO} /><Linha a={[0, 0.56, 0.18]} b={[0.11, 0.6, 0.165]} r={0.004} cor={DOURADO} /><Esf r={0.012} p={[0.115, 0.6, 0.162]} m={OURO()} line={0.3} seg={8} /></group>;
 const Lupa = () => <group position={[0.062, 0.19, 0.175]} rotation={[Math.PI / 2, 0, 0]}><Ci rt={0.045} rb={0.035} h={0.07} p={[0, 0.03, 0]} m="#2B2629" line={0.5} seg={14} /></group>;
 const Luvas = ({P, cor = '#7A5A3A'}) => P ? <>{[P.c.mP || maoRepouso(P.pos, P.ry, 1), P.c.mN || maoRepouso(P.pos, P.ry, -1)].map((m, i) => <Esf key={i} r={0.034} p={m} m={cor} line={0.5} seg={12} />)}</> : null;
-const Fones = () => <group>{[-1, 1].map((l) => <Esf key={l} r={0.022} s={[0.8, 1, 0.8]} p={[l * 0.172, 0.15, 0.02]} m="#FFFFFF" line={0.4} seg={10} />)}</group>;
+const Fones = () => <group>{[-1, 1].map((l) => <group key={l} position={[l * 0.172, 0.15, 0.03]} rotation={[0.1, 0, l * 0.12]}><Esf r={0.02} s={[0.85, 0.9, 0.8]} m={MAT('foneM', () => new THREE.MeshToonMaterial({color: '#FFFFFF', gradientMap: GRAD, emissive: '#555555'}))} line={0.45} seg={12} /><Ci rt={0.0085} rb={0.0075} h={0.075} p={[0, -0.05, 0.004]} m={MAT('foneM', () => null)} seg={10} line={0.4} /></group>)}</group>;
+const Estojo = ({p, s = 1}) => <group position={p} scale={s}><Esf r={0.05} s={[1.05, 0.75, 0.5]} m="#FFFFFF" line={0.6} seg={16} /><Cx a={[0.095, 0.003, 0.05]} p={[0, 0.012, 0]} m="#D5D5D5" line={0} sombra={false} /><Esf r={0.005} p={[0, -0.012, 0.024]} m="#7FE08A" line={0} seg={6} /></group>;
 const Coroa = () => <group position={[0, 0.31, 0]}><Ci rt={0.11} h={0.05} m={OURO()} line={0.5} seg={18} aberto />{[0, 1, 2, 3, 4].map((i) => <Esf key={i} r={0.016} p={[Math.cos(i * 1.256) * 0.11, 0.04, Math.sin(i * 1.256) * 0.11]} m={['#E84A8A', '#7FD0E8'][i % 2]} line={0.3} seg={8} />)}</group>;
 const CabeloRainha = () => <group><Tn geo={<sphereGeometry args={[0.175, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.5]} />} p={[0, 0.16, -0.015]} m="#6A3A22" line={0.6} />{[-1, 1].map((l) => <Esf key={l} r={0.05} p={[l * 0.16, 0.12, -0.02]} s={[0.7, 1.3, 0.8]} m="#6A3A22" line={0.5} seg={10} />)}</group>;
 const CabeloMenino = () => <group><Tn geo={<sphereGeometry args={[0.174, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.4]} />} p={[0, 0.17, -0.01]} rot={[-0.15, 0, 0]} m="#4A3022" line={0.6} />{[0, 1, 2].map((i) => <Esf key={i} r={0.04} p={[-0.05 + i * 0.05, 0.33, 0.08]} s={[1, 0.7, 1]} m="#4A3022" line={0.4} seg={8} />)}</group>;
@@ -489,7 +506,7 @@ const ParisRua = ({t, joias = 1}) => (
     <Placa p={[XPAR + 3.3, 2.55, -3.17]} txt="JOALHERIA" w={1.5} h={0.28} fundo="#F7D24A" tinta="#6A3A22" borda="#6A3A22" />
     <Cx a={[1.8, 1.0, 0.5]} p={[XPAR + 3.3, 0.85, -2.95]} m={MAT('vitrine', () => new THREE.MeshToonMaterial({color: '#CFE9F2', gradientMap: GRAD, transparent: true, opacity: 0.35}))} line={0.8} />
     <Cx a={[1.8, 0.35, 0.5]} p={[XPAR + 3.3, 0.18, -2.95]} m="#6A3A22" line={0.7} />
-    {joias ? [0, 1, 2, 3, 4].map((i) => <group key={i}><Cx a={[0.16, 0.2, 0.16]} p={[XPAR + 2.6 + i * 0.35, 0.45, -2.95]} m="#3A2A4A" line={0.5} /><Pulseira p={[XPAR + 2.6 + i * 0.35, 0.65 + Math.sin(t * 2 + i) * 0.01, -2.9]} rot={[0.2, 0, 0]} s={1.1} cor={['#E84A8A', '#7FD0E8', '#B57FE0', '#4CC38A', '#FF9A3C'][i]} /></group>) : null}
+    {joias ? [0, 1, 2].map((i) => <group key={i}><Cx a={[0.3, 0.16, 0.2]} p={[XPAR + 2.92 + i * 0.39, 0.43, -2.86]} m="#E9DCC4" line={0.5} /><RelJoiaVitrine p={[XPAR + 2.92 + i * 0.39, 0.58, -2.82]} cor={['#3A2A4A', '#7A2E4A', '#2E4A6B', '#3A2A4A'][i]} /></group>) : null}
     {joias ? [0, 1, 2, 3].map((i) => <Brilho key={i} id={120 + i} p={[XPAR + 2.6 + i * 0.45, 0.8, -2.75]} k={((t * 0.9 + i * 0.3) % 1)} s={0.18} />) : null}
     <Fachada p={[XPAR - 3.6, 0, -3.5]} w={2.8} h={3.6} k="a" cor="#B86A4E" />
     <Placa p={[XPAR - 3.6, 2.2, -3.27]} txt="JORNAIS" w={1.0} h={0.24} fundo="#FFFFFF" tinta="#2E4A6B" />
@@ -609,7 +626,9 @@ const SD_PAR = [XPAR + 0.0, 0.1, -0.4];
 const dumont = (t) => {
   const F = faceSD(t); let pos = SD_PAR, ry = 0, mP = null, mN = null, inc = 0, cab = [0, 0, 0], pe = null, vis = true, alt = 0, sentado = 0, relBolso = null, ombros = 0;
   const set = camEm(t).set;
-  if (set === 'par' && t < TM.em2 - 0.06) { // gancho: encolhido, escondendo o pulso
+  if (set === 'par' && t >= TM.ai - 0.4 && t < TM.dez + 0.3) { // vira a mesa!
+    pos = [XPAR, 0.1, -0.95]; const mv = cl((t - TM.ai - 0.1) / (TM.virada - TM.ai - 0.1)); mP = PM(pos, ry, [0.25, 0.65 + mv * 0.75, 0.32]); mN = PM(pos, ry, [-0.25, 0.65 + mv * 0.75, 0.32]); inc = 0.1 - mv * 0.2;
+  } else if (set === 'par' && t < TM.em2 - 0.06) { // gancho: encolhido, escondendo o pulso
     mN = PM(pos, ry, [-0.12, 0.62, 0.22]); mP = PM(pos, ry, [0.05, 0.6, 0.24]); inc = 0.08; cab = [0.15, 0, 0];
   } else if (set === 'ceu') { // no cesto do dirigível (a posição vem da cena)
     vis = false;
@@ -622,7 +641,7 @@ const dumont = (t) => {
     const C = caminho(t, [[TM.mas, [XPAR - 1.2, 0.1, -1.0], 0.6], [TM.voa, [XPAR + 1.6, 0.1, -0.4], 1.2]]);
     pos = [C.pos[0], 0.1 + quica(t, C.anda), C.pos[2]]; ry = C.ry; pe = C.anda ? passo(t) : null; cab = [-0.25, 0, 0];
     mN = PM(pos, ry, [-0.2, 0.55 + Math.sin(t * 9) * 0.05, 0.1]);
-  } else if (set === 'cam') { vis = false;
+  } else if (set === 'cam' || (set === 'par' && t > TM.quem - 0.2 && t < TM.bolso3)) { vis = false;
   } else if (set === 'par' && t > TM.detalhe - 0.1 && t < TM.oitocentos) { // sem graça, coça a nuca
     pos = [XPAR, 0.1, -0.5]; mP = PM(pos, ry, [0.1, 1.15, -0.05]); inc = 0.05; alt = -0.02;
   } else if (set === 'par' && t > TM.qual - 0.2) { // fecho: pisca e bate no relógio
@@ -648,6 +667,18 @@ const cavalheiro = (t, k) => {
     const [x, z, r] = RODA[k]; pos = [SD_PAR[0] + x, 0.1, SD_PAR[2] + z]; ry = Math.atan2(SD_PAR[0] - pos[0], SD_PAR[2] - pos[2]);
     const ri = Math.sin(t * 20 + k * 2); F = expr(t, [[0, {olhos: 'feliz', boca: ri > 0 ? 'grito' : 'sorrisoD', bochecha: 0.8}]], k);
     mP = PM(pos, ry, [0.12, 0.95 + Math.sin(t * 14 + k) * 0.03, 0.35]); mN = PM(pos, ry, [-0.18, 0.55 + Math.abs(Math.sin(t * 10 + k)) * 0.08, 0.15]); inc = -0.1 + Math.sin(t * 12 + k) * 0.06; cab = [-0.2, 0, 0];
+  } else if (set === 'par' && t >= TM.corrente - 0.06 && t < TM.relogio2) { // os durões: 3 lado a lado, em câmera lenta
+    if (k > 2) return {vis: false};
+    const u = (t - TM.corrente) / (TM.relogio2 - TM.corrente), lado = k - 1;
+    pos = [XPAR + lado * 0.72, 0.1 + quica(t, 0.5, 4.5), lerp(-1.25, -0.45, u) - Math.abs(lado) * 0.1]; ry = 0; pe = passo(t, 0.55, 4.5);
+    const dur = {olhos: 'semi', boca: 'reta', sob: 0.35, palp: 0.5, semPisca: true};
+    F = expr(t, [[0, dur], [TM.bigode, {...dur, boca: k === 2 ? 'canto' : 'reta', assim: k === 2 ? 0.04 : 0}]], k);
+    if (t < TM.colete) { mP = PM(pos, ry, [0.22, 0.72 + Math.sin(t * 6) * 0.03, 0.2]); rel = k === 0 ? {p: add(mP, [Math.cos(t * 9) * 0.13, -0.02 + Math.sin(t * 9) * 0.13, 0.06]), abre: 1, gira: true} : null; mN = PM(pos, ry, [-0.2, 0.5, 0.08]);
+    } else if (t < TM.bigode) { const pu = Math.sin(t * 7) * 0.02; mP = PM(pos, ry, [0.1, 0.72 + pu, 0.2]); mN = PM(pos, ry, [-0.1, 0.72 + pu, 0.2]);
+    } else { mP = PM(pos, ry, [0.13, 1.0, 0.24]); mN = PM(pos, ry, [-0.2, 0.5, 0.08]); }
+    const gira = k === 2 && t > TM.bigode + 0.1 ? (t - TM.bigode - 0.1) * 14 : 0;
+    return {pos, ry, vis, rel, gira: !!rel, c: {cor: v.cor, ...F, inc: -0.04, cab: [-0.06, 0, 0], mP, mN, pe, t, fase: k * 0.31, resp: t * 2,
+      roupa: <><Colarinho /><Corrente /></>, cabeca: <><group position={[0, 0.135, 0.17]} rotation={[0, 0, gira]}><group position={[0, -0.135, -0.17]}><BigodeGuidao /></group></group><Cartola y={0.31} inc={lado * -0.07} /></>}};
   } else if (set === 'par' && t < TM.relogio2) { // desfile na calçada, todos tiram o relógio de bolso juntos
     const x0 = -4.5 + k * 0.85; const anda = t < TM.relogio - 0.2; const x = x0 + (Math.min(t, TM.relogio - 0.2) - 4.3) * 0.55;
     pos = [XPAR + x, 0.1, -1.0 + (k % 2) * 0.2]; ry = kf(t, [[TM.relogio - 0.2, Math.PI / 2], [TM.relogio + 0.1, 0.15, back]]); pe = anda ? passo(t) : null; pos = [pos[0], 0.1 + quica(t, anda ? 1 : 0), pos[2]];
@@ -655,7 +686,7 @@ const cavalheiro = (t, k) => {
     mP = relP > 0 ? PM(pos, ry, [0.1, 0.55 + relP * 0.38, 0.12 + relP * 0.2]) : PM(pos, ry, [0.2, 0.5 + Math.sin(t * 9) * 0.04, 0.05]); rel = relP > 0 ? {p: add(mP, [0, 0.05, 0.01]), abre: ab} : null;
     F = expr(t, [[0, {olhos: 'semi', boca: 'canto', sob: 0.4}], [TM.relogio, {olhos: 'normal', boca: 'sorriso', olhar: [0, -0.6]}], [TM.bigode, {olhos: 'semi', boca: 'canto', sob: 0.6, assim: 0.04}]], k);
   } else if (set === 'par' && t < TM.so) { // vitrine: um deles desmaia com as pulseiras
-    if (k > 1) return {vis: false};
+    if (k > 1 || t < TM.isso - 0.3) return {vis: false};
     pos = [XPAR + 2.9 + k * 0.7, 0.1, -2.2]; ry = k ? -0.7 : -0.9;
     desmaio = k === 0 ? kf(t, [[TM.madame - 0.1, 0], [TM.madame + 0.35, 1, Easing.in(Easing.quad)]]) : 0;
     F = expr(t, [[0, {olhos: 'normal', boca: 'reta', olhar: [0, 0.2]}], [TM.joia, {olhos: 'grande', boca: 'O', pop: 0.3, semPisca: true}], [TM.madame, {olhos: k ? 'grande' : 'fechado', boca: k ? 'O' : 'triste', semPisca: true}]], k);
@@ -669,8 +700,17 @@ const cavalheiro = (t, k) => {
     F = falando ? {...expr(t, [[0, {olhos: 'semi', boca: 'canto', sob: 0.5}]], k), boca: fala(t, TM.o6 - 0.05, TM.mas) || 'canto'} : expr(t, [[0, {olhos: 'feliz', boca: Math.sin(t * 20 + k) > 0 ? 'grito' : 'sorrisoD', bochecha: 0.8}], [TM.mas, {olhos: 'grande', boca: 'O'}]], k);
     mP = k === 0 && t < TM.o6 ? PM(pos, ry, [0.12, 0.95, 0.3]) : PM(pos, ry, [0.15, 0.6 + Math.abs(Math.sin(t * 11 + k)) * 0.1, 0.2]);
     mN = k === 0 && t < TM.o6 ? PM(pos, ry, [-0.12, 0.95, 0.3]) : null;
-  } else if (set === 'par' && t > TM.voltou - 0.1 && t < TM.bolso3) { // desfile de volta: soldados
-    return {vis: false};
+  } else if (set === 'par' && t >= TM.ai - 0.2 && t < TM.dez + 0.3) { // a virada: chocados, olhando para a câmera
+    if (k > 3) return {vis: false};
+    const [x, z] = [[-1.05, -0.45], [1.05, -0.45], [-0.6, -1.3], [0.62, -1.3]][k]; pos = [XPAR + x, 0.1, z]; ry = -x * 0.22;
+    const mv = cl((t - TM.ai - 0.1) / (TM.virada - TM.ai - 0.1));
+    F = expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.5}], [TM.ai + 0.2, {olhos: 'grande', boca: 'O', abre: 0.8, sob: 0.9, semPisca: true, pop: 0.3}]], k);
+    mP = PM(pos, ry, [0.14, 0.75 + mv * 0.35, 0.25]); mN = PM(pos, ry, [-0.14, 0.75 + mv * 0.35, 0.25]); inc = -0.14 * mv; cab = [-0.05, 0, 0];
+    return {pos, ry, vis, c: {cor: v.cor, ...F, inc, cab, mP, mN, t, fase: k * 0.31, resp: t * 3, roupa: <><Colarinho /><Corrente /></>, cabeca: <><BigodeGuidao /><Cartola y={0.31 + (k % 2 ? mv * 0.22 : 0)} inc={(k % 2 ? mv * 0.5 : 0)} />{v.mono ? <Monoculo cai={mv * 0.5} /> : null}</>}};
+  } else if (set === 'par' && t > TM.quem - 0.06 && t < TM.bolso3) { // na volta dos soldados: o coro na calçada, escondendo o relógio de bolso
+    if (k > 3) return {vis: false};
+    pos = [XPAR - 1.6 + k * 1.05, 0.1, -2.05]; ry = 0; mP = PM(pos, ry, [0.2, 0.42, -0.12]); mN = PM(pos, ry, [-0.2, 0.42, -0.12]); cab = [0.1, 0, 0];
+    F = expr(t, [[0, {olhos: 'semi', boca: 'nervoso', sob: -0.3, olhar: [0, -0.2]}]], k);
   } else if (set === 'par' && t > TM.ele5 - 0.1 && t < TM.tipo) { // callback: todos de relógio no pulso, disfarçando
     const [x, z, r] = RODA[k]; pos = [XPAR + x * 1.2, 0.1, -0.5 + z]; ry = Math.atan2(-x, 1.2) * 0.5;
     mN = PM(pos, ry, [-0.06, 0.82, 0.28]); mP = PM(pos, ry, [0.18, 0.5, 0.1]); cab = [0.25, 0.2 * (k % 2 ? 1 : -1), 0];
@@ -723,10 +763,19 @@ const soldado = (t, k) => {
     mN = recebeu ? PM(pos, ry, [-0.05, 0.85, 0.3]) : null; mP = recebeu ? PM(pos, ry, [0.12, 0.75, 0.32]) : null;
     F = expr(t, [[0, recebeu ? {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.5, olhar: [-0.4, -0.6]} : {olhos: 'normal', boca: 'reta', olhar: [0.5, 0]}]], k * 0.3);
     return {pos, ry, pulso: recebeu, c: {cor: COR_KAKI, ...F, inc, cab, mP, mN, t, fase: k * 0.3, resp: t * 3, cabeca: <Capacete y={0.27} />}};
-  } else if (set === 'par') { // desfile de volta, relógio no pulso
-    const x = -4 + (t - TM.voltou + 0.1) * 1.2 + k * 0.6 - (k % 2) * 0.1; pos = [XPAR + x, 0.1 + quica(t, 1), -0.9 + (k % 2) * 0.5]; ry = Math.PI / 2; pe = passo(t);
-    mN = PM(pos, ry, [-0.15, 1.1 + Math.sin(t * 9 + k) * 0.05, 0.15]); F = expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.6}]], k * 0.3);
-    return {pos, ry, pulso: true, c: {cor: COR_KAKI, ...F, inc, cab, mP, mN, pe, t, fase: k * 0.3, resp: t * 3, cabeca: <Capacete y={0.27} />}};
+  } else if (set === 'par') { // de volta da guerra: cada um com o relógio à vista
+    const R0 = {cor: COR_KAKI, t, fase: k * 0.3, resp: t * 3, cabeca: <Capacete y={0.27} />};
+    if (k === 0) { pos = [XPAR - 0.9, 0.1, -0.55]; ry = 0.15; const e = kf(t, [[TM.quem, 0], [TM.quem + 0.35, 1, back]]); mN = PM(pos, ry, [-0.12, 0.62 + e * 0.2, 0.24 + e * 0.1]); F = expr(t, [[0, {olhos: 'normal', boca: 'sorriso', olhar: [-0.2, -0.8]}], [TM.voltou + 0.3, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.6}]], 0.1); cab = [0.28, -0.1, 0];
+      return {pos, ry, pulso: true, c: {...R0, ...F, mN, cab, mP: null}}; }
+    const W = [XPAR + 0.2, 0.98, -0.25];
+    if (k === 1) { pos = [XPAR - 0.05, 0.1, -0.6]; ry = 0.55; mP = add(W, [0.0, 0.03 + Math.sin(t * 11) * 0.008, 0.03]); mN = add(W, [0.02, -0.03, 0.0]); F = expr(t, [[0, {olhos: 'normal', boca: 'canto', olhar: [0.3, -0.6]}]], 0.3); cab = [0.25, 0.1, 0];
+      return {pos, ry, c: {...R0, ...F, mP, mN, cab}}; }
+    if (k === 2) { pos = [XPAR + 0.5, 0.1, -0.6]; ry = -0.55; mN = W; F = expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.4, olhar: [-0.3, -0.5]}]], 0.5); cab = [0.2, -0.1, 0];
+      return {pos, ry, pulso: true, frente: [0, 0.4, 1], c: {...R0, ...F, mN, cab}}; }
+    if (k === 3) { pos = [XPAR + 1.05, 0.1, -0.55]; ry = -0.05; const e = kf(t, [[TM.largou - 0.2, 0], [TM.largou + 0.1, 1, back]]); mN = PM(pos, ry, [-0.18 - e * 0.14, 0.8 + e * 0.42 + Math.sin(t * 11) * 0.03 * e, 0.18]); F = expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.7}], [TM.largou, {olhos: 'feliz', boca: 'grito', bochecha: 0.8}]], 0.7);
+      return {pos, ry, pulso: true, aceno: e, c: {...R0, ...F, mN, mP: null}}; }
+    const x = -3.2 + (t - TM.quem) * 1.9; pos = [XPAR + x, 0.1 + quica(t, 1), -1.15]; ry = Math.PI / 2; pe = passo(t); mN = PM(pos, ry, [-0.15, 1.05, 0.15]); F = expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.5}]], 0.9);
+    return {pos, ry, pulso: true, c: {...R0, ...F, mN, pe}};
   } else return {vis: false};
   return {pos, ry, relLama, c: {cor: COR_KAKI, ...F, inc, cab, mP, mN, pe, t, fase: k * 0.3, resp: t * 3, cabeca: <Capacete y={0.27} />}};
 };
@@ -740,7 +789,7 @@ const vovo = (t) => {
 // ---------- rainha ----------
 const rainha = (t) => {
   const pos = [XPAL - 0.1, 0, -0.8]; const ergue = kf(t, [[TM.oitocentos, 0], [TM.dez2, 1, back]]);
-  const mN = PM(pos, 0, [-0.15 - ergue * 0.05, 0.6 + ergue * 0.55, 0.15 + ergue * 0.2]);
+  const mN = PM(pos, 0, [-0.15 - ergue * 0.22, 0.6 + ergue * 0.36, 0.15 + ergue * 0.18]);
   const F = expr(t, [[0, {olhos: 'feliz', boca: 'sorriso', bochecha: 0.5}], [TM.rainha, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.8, pop: 0.2}]], 0.3);
   return {pos, ry: 0, c: {cor: '#E87FA8', ...F, mN, mP: PM(pos, 0, [0.22, 0.5, 0.1]), t, fase: 0.3, resp: t * 3, pele: '#FFF1E6', roupa: <><Colar /></>, cabeca: <><CabeloRainha /><Coroa /></>}};
 };
@@ -750,7 +799,7 @@ const menino = (t) => {
   const dz = depois ? Math.abs(Math.sin(t * 8)) * 0.05 : 0;
   const F = depois ? expr(t, [[0, {olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.8}]], 0.2) : expr(t, [[0, {olhos: 'feliz', boca: 'grito', bochecha: 0.8}]], 0.2);
   const mP = depois ? PM(pos, -0.3, [0.25, 1.0 + Math.sin(t * 8) * 0.08, 0.15]) : PM(pos, -0.3, [0.05, 0.9, 0.4]);
-  const mN = depois ? PM(pos, -0.3, [-0.2, 0.8, 0.3]) : PM(pos, -0.3, [-0.2, 0.5 + Math.abs(Math.sin(t * 12)) * 0.08, 0.15]);
+  const mN = depois ? PM(pos, -0.3, [-0.1, 0.6, 0.25]) : PM(pos, -0.3, [-0.2, 0.5 + Math.abs(Math.sin(t * 12)) * 0.08, 0.15]);
   return {pos: [pos[0], dz, pos[2]], ry: depois ? 0 : -0.3, celular: depois ? add(mN, [0, 0.12, 0.03]) : null, c: {cor: '#9AA0A6', ...F, mP, mN, inc: depois ? 0 : -0.1, t, fase: 0.2, resp: t * 3, cabeca: <><CabeloMenino />{depois ? <Fones /> : null}</>, lat: depois ? Math.sin(t * 8) * 0.08 : 0}};
 };
 const amigo = (t) => {
@@ -767,12 +816,10 @@ const PLANOS = [
   // desfile em plongée e o relógio de bolso sincronizado
   {t0: TM.em2, set: 'par', funde: true, keys: [[TM.em2, [XPAR - 3.2, 3.6, 1.8], [XPAR - 2.2, 0.5, -1.0], 44], [TM.relogio - 0.1, [XPAR - 1.6, 3.2, 1.6], [XPAR - 1.2, 0.5, -1.0], 44]]},
   {t0: TM.relogio - 0.1, set: 'par', keys: [[TM.relogio - 0.1, [XPAR - 0.3, 1.25, 1.2], [XPAR - 1.6, 1.0, -1.0], 40], [TM.corrente, [XPAR - 0.4, 1.2, 0.9], [XPAR - 1.5, 1.05, -1.0], 38]]},
-  {t0: TM.corrente, set: 'par', keys: [[TM.corrente, [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.25, 0.8, 0.3], [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.7, -0.95], 26], [TM.colete, [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.22, 0.79, 0.2], [XPAR - 4.5 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.7, -0.95], 22]]},
-  {t0: TM.colete, set: 'par', keys: [[TM.colete, [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.25, 0.82, 0.45], [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.72, -0.75], 26], [TM.bigode, [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.22, 0.81, 0.35], [XPAR - 3.65 + 0.55 * (TM.relogio - 4.5) + 0.05, 0.72, -0.75], 22]]},
-  {t0: TM.bigode, set: 'par', keys: [[TM.bigode, [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.3, 1.25, 0.2], [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.06, 1.24, -0.98], 22], [TM.relogio2 - 0.05, [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.28, 1.25, 0.1], [XPAR - 2.8 + 0.55 * (TM.relogio - 4.5) + 0.06, 1.24, -0.98], 18]]},
+  {t0: TM.corrente, set: 'par', funde: true, keys: [[TM.corrente, [XPAR - 0.72, 0.95, 1.5], [XPAR - 0.72, 0.8, -0.8], 36], [TM.colete - 0.1, [XPAR - 0.6, 0.92, 1.45], [XPAR - 0.62, 0.8, -0.8], 34], [TM.colete + 0.2, [XPAR + 0.05, 0.95, 1.45], [XPAR, 0.82, -0.7], 34], [TM.bigode - 0.1, [XPAR + 0.1, 0.98, 1.4], [XPAR + 0.05, 0.85, -0.7], 33], [TM.bigode + 0.2, [XPAR + 0.72, 1.3, 1.1], [XPAR + 0.72, 1.22, -0.6], 30], [TM.relogio2, [XPAR + 0.74, 1.3, 0.95], [XPAR + 0.72, 1.24, -0.5], 26]]},
   // vitrine
-  {t0: TM.relogio2 - 0.05, set: 'par', keys: [[TM.relogio2 - 0.05, [XPAR + 3.3, 1.0, -1.7], [XPAR + 3.3, 0.65, -2.95], 40], [TM.isso - 0.1, [XPAR + 3.3, 0.9, -2.0], [XPAR + 3.3, 0.65, -2.95], 34]]},
-  {t0: TM.isso - 0.1, set: 'par', funde: true, keys: [[TM.isso - 0.1, [XPAR + 1.7, 1.2, -1.2], [XPAR + 3.3, 0.8, -2.2], 44], [TM.so - 0.05, [XPAR + 1.8, 1.0, -1.3], [XPAR + 3.3, 0.5, -2.2], 44]]},
+  {t0: TM.relogio2 - 0.05, set: 'par', keys: [[TM.relogio2 - 0.05, [XPAR + 3.31, 0.85, -1.5], [XPAR + 3.31, 0.6, -2.8], 30], [TM.isso - 0.1, [XPAR + 3.31, 0.72, -2.0], [XPAR + 3.31, 0.6, -2.8], 24]]},
+  {t0: TM.isso - 0.1, set: 'par', funde: true, keys: [[TM.isso - 0.1, [XPAR + 1.4, 1.25, -0.3], [XPAR + 2.62, 0.95, -2.25], 44], [TM.so - 0.05, [XPAR + 1.5, 1.1, -0.4], [XPAR + 2.72, 0.75, -2.25], 44]]},
   // céu de Paris
   {t0: TM.so - 0.05, set: 'ceu', keys: [[TM.so - 0.05, [XCEU - 5, 2.0, 8], [XCEU, 1.3, 0], 46], [TM.ele - 0.05, [XCEU - 2.5, 2.2, 6.5], [XCEU, 1.2, 0], 44]]},
   {t0: TM.ele - 0.05, set: 'ceu', keys: [[TM.ele - 0.05, [XCEU + 0.7, 1.4, 2.7], [XCEU + 0.3, 0.8, 0.0], 40], [TM.la - 0.05, [XCEU + 0.7, 1.35, 2.45], [XCEU + 0.3, 0.8, 0.0], 38]]},
@@ -787,9 +834,9 @@ const PLANOS = [
   {t0: TM.joalheiro, set: 'max', keys: [[TM.joalheiro, [XMAX - 0.55, 1.35, 0.7], [XMAX + 0.45, 1.05, -0.6], 40], [TM.faz - 0.1, [XMAX - 0.5, 1.32, 0.55], [XMAX + 0.45, 1.05, -0.6], 38]]},
   // ateliê
   {t0: TM.faz - 0.1, set: 'ofi', keys: [[TM.faz - 0.1, [XOFI + 0.2, 1.6, 1.4], [XOFI, 0.95, -1.2], 44], [TM.relogio3, [XOFI + 0.1, 1.5, 1.1], [XOFI, 0.95, -1.25], 42]]},
-  {t0: TM.relogio3, set: 'ofi', keys: [[TM.relogio3, [XOFI + 0.05, 1.2, -0.95], [XOFI, 0.95, -1.35], 32], [TM.preso, [XOFI + 0.03, 1.15, -1.0], [XOFI, 0.95, -1.35], 26]]},
-  {t0: TM.preso, set: 'ofi', keys: [[TM.preso, [XOFI + 0.35, 1.05, -1.0], [XOFI, 0.93, -1.35], 30], [TM.tira, [XOFI + 0.3, 1.02, -1.05], [XOFI, 0.93, -1.35], 28]]},
-  {t0: TM.tira, set: 'ofi', keys: [[TM.tira, [XOFI - 0.25, 1.1, -0.95], [XOFI, 0.93, -1.35], 30], [TM.paris2 - 0.05, [XOFI - 0.2, 1.08, -1.0], [XOFI, 0.93, -1.35], 26]]},
+  {t0: TM.relogio3, set: 'ofi', keys: [[TM.relogio3, [XOFI + 0.06, 1.25, -0.85], [XOFI, 0.98, -1.35], 30], [TM.preso, [XOFI + 0.04, 1.18, -1.0], [XOFI, 0.98, -1.35], 24]]},
+  {t0: TM.preso, set: 'ofi', keys: [[TM.preso, [XOFI + 0.3, 1.12, -1.05], [XOFI, 0.97, -1.35], 28], [TM.tira, [XOFI + 0.26, 1.1, -1.08], [XOFI, 0.97, -1.35], 26]]},
+  {t0: TM.tira, set: 'ofi', keys: [[TM.tira, [XOFI - 0.24, 1.12, -1.05], [XOFI, 0.97, -1.35], 28], [TM.paris2 - 0.05, [XOFI - 0.2, 1.1, -1.08], [XOFI, 0.97, -1.35], 24]]},
   // Paris não perdoa: jornal, monóculo na sopa, nariz empinado
   {t0: TM.paris2 - 0.05, set: 'par', keys: [[TM.paris2 - 0.05, [XPAR + 0.75, 1.3, 0.1], [XPAR + 0.7, 1.15, -1.2], 40], [TM.o6 - 0.05, [XPAR + 0.75, 1.28, -0.05], [XPAR + 0.7, 1.15, -1.2], 38]]},
   {t0: TM.o6 - 0.05, set: 'par', keys: [[TM.o6 - 0.05, [XPAR + 0.95, 1.3, -0.65], [XPAR + 1.4, 1.15, -1.75], 36], [TM.pulseira + 0.2, [XPAR + 0.95, 1.25, -0.7], [XPAR + 1.35, 1.1, -1.75], 34], [TM.mas - 0.05, [XPAR + 0.95, 1.15, -0.8], [XPAR + 0.95, 0.85, -1.7], 32]]},
@@ -798,7 +845,7 @@ const PLANOS = [
   {t0: TM.voa - 0.05, set: 'cam', keys: [[TM.voa - 0.05, [XCAM - 0.6, 1.0, 9.0], [XCAM - 2.0, 1.8, -0.2], 44], [TM.cronometra, [XCAM - 0.2, 1.05, 8.8], [XCAM - 0.4, 1.85, -0.2], 44, lin]]},
   {t0: TM.cronometra, set: 'cam', keys: [[TM.cronometra, [XCAM - 1.1, 1.95, 3.2], [XCAM - 1.4, 1.65, -0.2], 40], [TM.ai - 0.05, [XCAM + 1.5, 1.95, 3.2], [XCAM + 1.6, 1.65, -0.2], 40, lin]]},
   // virada (preto com carimbo) e calendário
-  {t0: TM.ai - 0.05, set: 'cal', keys: [[TM.ai - 0.05, [XCAL, 1.6, 1.0], [XCAL, 1.6, -2.1], 44], [TM.dez, [XCAL, 1.6, 0.9], [XCAL, 1.6, -2.1], 44]]},
+  {t0: TM.ai - 0.05, set: 'par', keys: [[TM.ai - 0.05, [XPAR, 1.2, 3.1], [XPAR, 1.15, -0.6], 44], [TM.virada, [XPAR, 1.2, 2.9], [XPAR, 1.15, -0.6], 44], [TM.dez + 0.1, [XPAR, 1.2, 2.5], [XPAR, 1.18, -0.6], 40]]},
   {t0: TM.dez, set: 'cal', keys: [[TM.dez, [XCAL, 1.6, 1.4], [XCAL, 1.6, -2.1], 44], [TM.guerra, [XCAL, 1.6, 0.6], [XCAL, 1.6, -2.1], 40], [TM.na - 0.05, [XCAL, 1.6, 0.5], [XCAL, 1.6, -2.1], 30, outQ]]},
   // trincheira
   {t0: TM.na - 0.05, set: 'tri', keys: [[TM.na - 0.05, [XTRI - 2.6, 1.5, 0.3], [XTRI, 0.7, 0], 48], [TM.ninguem, [XTRI - 1.8, 1.3, 0.25], [XTRI, 0.7, 0], 46]]},
@@ -808,14 +855,14 @@ const PLANOS = [
   {t0: TM.dezessete - 0.4, set: 'tri', keys: [[TM.dezessete - 0.4, [XTRI + 0.6, 1.4, 2.6], [XTRI + 0.8, 0.8, 0.1], 46], [TM.entregar, [XTRI + 0.7, 1.35, 2.3], [XTRI + 0.9, 0.8, 0.1], 44]]},
   {t0: TM.entregar, set: 'tri', keys: [[TM.entregar, [XTRI + 1.0, 1.25, 2.2], [XTRI + 1.4, 0.85, 0.1], 42], [TM.quem - 0.05, [XTRI + 1.1, 1.2, 1.9], [XTRI + 1.5, 0.85, 0.1], 40]]},
   // desfile de volta
-  {t0: TM.quem - 0.05, set: 'par', keys: [[TM.quem - 0.05, [XPAR + 1.0, 1.0, 2.2], [XPAR - 0.5, 1.0, -0.8], 50], [TM.bolso3 - 0.1, [XPAR + 1.4, 1.1, 2.0], [XPAR + 0.5, 1.0, -0.8], 48]]},
+  {t0: TM.quem - 0.05, set: 'par', keys: [[TM.quem - 0.05, [XPAR - 0.85, 1.15, 1.5], [XPAR - 0.9, 0.98, -0.55], 36], [TM.voltou + 0.4, [XPAR - 0.82, 1.12, 1.35], [XPAR - 0.9, 0.98, -0.55], 34], [TM.voltou + 0.8, [XPAR + 0.2, 1.15, 1.25], [XPAR + 0.2, 0.92, -0.45], 36], [TM.largou - 0.15, [XPAR + 0.22, 1.12, 1.1], [XPAR + 0.2, 0.92, -0.45], 33], [TM.largou + 0.25, [XPAR + 1.0, 1.3, 1.6], [XPAR + 1.0, 1.12, -0.55], 38], [TM.bolso3 - 0.1, [XPAR + 1.0, 1.3, 1.45], [XPAR + 1.0, 1.12, -0.55], 36]]},
   // vovô
   {t0: TM.bolso3 - 0.1, set: 'vov', keys: [[TM.bolso3 - 0.1, [XVOV + 0.2, 1.2, 1.4], [XVOV + 0.1, 0.75, -0.9], 42], [TM.vovo, [XVOV + 0.2, 1.1, 0.9], [XVOV + 0.1, 0.8, -0.9], 38], [TM.detalhe - 0.05, [XVOV + 0.15, 1.05, 0.7], [XVOV + 0.1, 0.8, -0.9], 36]]},
   // detalhe: Dumont sem graça
   {t0: TM.detalhe - 0.05, set: 'par', keys: [[TM.detalhe - 0.05, [XPAR + 0.1, 1.35, 1.5], [XPAR, 1.15, -0.5], 38], [TM.oitocentos - 0.1, [XPAR + 0.08, 1.32, 1.2], [XPAR, 1.15, -0.5], 34]]},
   // palácio da rainha
   {t0: TM.oitocentos - 0.1, set: 'pal', keys: [[TM.oitocentos - 0.1, [XPAL, 1.5, 2.2], [XPAL, 1.0, -0.8], 44], [TM.feito, [XPAL - 0.05, 1.4, 1.6], [XPAL - 0.1, 1.05, -0.8], 42]]},
-  {t0: TM.feito, set: 'pal', keys: [[TM.feito, [XPAL - 0.1, 1.35, 0.8], [XPAL - 0.18, 1.2, -0.8], 34], [TM.ele5 - 0.1, [XPAL - 0.1, 1.33, 0.6], [XPAL - 0.18, 1.2, -0.8], 30]]},
+  {t0: TM.feito, set: 'pal', keys: [[TM.feito, [XPAL - 0.15, 1.25, 1.0], [XPAL - 0.25, 1.08, -0.8], 36], [TM.ele5 - 0.1, [XPAL - 0.15, 1.22, 0.8], [XPAL - 0.25, 1.08, -0.8], 32]]},
   // callback: coro de relógio no pulso
   {t0: TM.ele5 - 0.1, set: 'par', keys: [[TM.ele5 - 0.1, [XPAR, 1.5, 2.6], [XPAR, 0.95, -0.5], 46], [TM.tipo - 0.05, [XPAR, 1.4, 2.2], [XPAR, 0.95, -0.5], 44]]},
   // quarto do "você"
@@ -824,7 +871,7 @@ const PLANOS = [
   // fecho
   {t0: TM.qual - 0.2, set: 'par', keys: [[TM.qual - 0.2, [XPAR + 0.05, 1.3, 1.3], [XPAR, 1.0, -0.5], 40], [TM.fim, [XPAR + 0.05, 1.25, 0.9], [XPAR, 1.05, -0.5], 38]]},
 ];
-const TREMORES = [[TM.zoado, 0.012], [TM.madame + 0.3, 0.015], [TM.torcer, 0.02], [TM.panqueca, 0.02], [TM.pulseira + 0.5, 0.01], [TM.voa + 0.3, 0.02], [TM.guerra, 0.02], [TM.lama, 0.015], [TM.tropa, 0.01]];
+const TREMORES = [[TM.zoado, 0.012], [TM.madame + 0.3, 0.015], [TM.torcer, 0.02], [TM.panqueca, 0.02], [TM.pulseira + 0.5, 0.01], [TM.voa + 0.3, 0.02], [TM.guerra, 0.02], [TM.lama, 0.015], [TM.tropa, 0.01], [TM.virada, 0.06]];
 const SUAVE = fazCameraSuave(PLANOS, TREMORES);
 const camEm = SUAVE.em;
 const Cam = ({c}) => { const {camera} = useThree(); camera.position.set(...c.pos); camera.fov = c.fov; camera.near = 0.03; camera.far = 900; camera.updateProjectionMatrix(); camera.lookAt(...c.look); return null; };
@@ -835,14 +882,25 @@ const CenaPar = ({t}) => {
   const SD = dumont(t); const Cs = [0, 1, 2, 3, 4, 5].map((k) => cavalheiro(t, k)); const Ss = [0, 1, 2, 3, 4].map((k) => soldado(t, k));
   const jornal = t > TM.paris2 - 0.1 && t < TM.o6 + 0.2 ? kf(t, [[TM.paris2 - 0.1, 0], [TM.perdoa, 1, back], [TM.o6 - 0.1, 1], [TM.o6 + 0.2, 0]]) : 0;
   const pq = t > TM.panqueca - 0.15 && t < TM.entao ? cl((t - TM.panqueca + 0.1) / 0.45) : 0;
-  const desfile = t > TM.voltou - 0.2 && t < TM.bolso3;
+  const desfile = t > TM.quem - 0.2 && t < TM.bolso3;
+  const mv = t >= TM.ai - 0.3 && t < TM.dez + 0.3 ? cl((t - TM.ai - 0.1) / (TM.virada - TM.ai - 0.1)) : -1;
+  const duroes = t >= TM.corrente - 0.2 && t < TM.relogio2 + 0.1;
+  const madame = t >= TM.relogio2 - 0.3 && t < TM.so + 0.2;
   return (
     <group>
       <ParisRua t={t} />
       {SD.vis ? <><Boneco pos={SD.pos} ry={SD.ry} c={SD.c} /><NoPulso P={SD} /></> : null}
-      {Cs.map((C, k) => C.vis === false ? null : C.desmaio > 0 ? <Desmaiado key={k} P={C} /> : <group key={k}><Boneco pos={C.pos} ry={C.ry} c={C.c} />{C.pulso ? <NoPulso P={C} /> : null}{C.rel ? <RelBolso p={C.rel.p} rot={[0, C.ry, 0]} abre={C.rel.abre} t={t} /> : null}</group>)}
+      {Cs.map((C, k) => C.vis === false ? null : C.desmaio > 0 ? <Desmaiado key={k} P={C} /> : <group key={k}><Boneco pos={C.pos} ry={C.ry} c={C.c} />{C.pulso ? <NoPulso P={C} /> : null}{C.rel ? <RelBolso p={C.rel.p} rot={[0, C.ry, 0]} abre={C.rel.abre} t={t} s={C.gira ? 1.6 : 1} /> : null}{C.gira ? <Linha a={C.c.mP} b={C.rel.p} r={0.004} cor={DOURADO} /> : null}</group>)}
       {Cs[0].rel && t > TM.relogio && t < TM.corrente ? [0, 1, 2, 3, 4, 5].map((k) => Cs[k].rel ? <Brilho key={'b' + k} id={300 + k} p={add(Cs[k].rel.p, [0, 0.06, 0.04])} k={fx01(t, TM.relogio + 0.1 + k * 0.05, 0.5)} s={0.16} /> : null) : null}
-      {desfile ? Ss.map((S, k) => S.vis === false ? null : <group key={'s' + k}><Boneco pos={S.pos} ry={S.ry} c={S.c} /><NoPulso P={S} /></group>) : null}
+      {desfile ? Ss.map((S, k) => S.vis === false ? null : <group key={'s' + k}><Boneco pos={S.pos} ry={S.ry} c={S.c} />{S.pulso ? <NoPulso P={S} s={1.3} frente={S.frente} /> : null}{S.aceno > 0 ? <Brilho id={330} p={add(S.c.mN, [0.02, -0.02, 0.06])} k={((t * 2) % 1)} s={0.2} /> : null}</group>) : null}
+      {desfile ? <Placa p={[XPAR - 0.2, 2.32, -1.7]} txt="VOLTARAM NA HORA!" w={2.0} h={0.3} fundo="#F7D24A" tinta="#6A3A22" borda="#6A3A22" moldura={null} fio /> : null}
+      {duroes ? <>{Array.from({length: 12}).map((_, i) => <Fumaca key={i} id={20 + i} p={[XPAR - 1.8 + (i % 6) * 0.72, 0.05, -1.6 + (i % 3) * 0.6]} k={(t * 0.35 + i * 0.137) % 1} s={1.5} />)}
+        <group position={[XPAR + 0.37, 0.1 + quica(t, 0.5, 6), lerp(-0.95, -0.15, (t - TM.corrente) / (TM.relogio2 - TM.corrente))]}><Esf r={0.08} p={[0, 0.1, 0]} s={[0.9, 1, 1.25]} m="#EE9440" line={0.7} seg={16} /><CabGato p={[0, 0.2, 0.08]} olhos="semi" t={t} /><group position={[0, 0.2, 0.08]} scale={0.32}><Cartola y={0.2} /></group>{[-1, 1].map((l) => <Linha key={l} a={[l * 0.04, 0.06, 0.04]} b={[l * 0.04, 0.0, 0.05 + Math.sin(t * 6 + l) * 0.03]} r={0.012} cor="#EE9440" />)}</group></> : null}
+      {madame ? (() => { const pos = [XPAR + 2.35, 0.1, -2.15], ry = 0.45; const mN = PM(pos, ry, [-0.28, 1.05 + Math.sin(t * 2) * 0.01, 0.26]); const c = {cor: '#C56A9A', olhos: 'feliz', boca: 'sorrisoD', bochecha: 0.6, mN, mP: PM(pos, ry, [0.2, 0.55, 0.06]), t, fase: 0.5, resp: t * 3, pele: '#FFF1E6', roupa: <Colar />, cabeca: <><CabeloRainha /><group position={[0, 0.34, -0.02]} rotation={[0, 0, 0.2]}><Ci rt={0.17} h={0.015} m="#7A3A6A" line={0.5} seg={20} /><Esf r={0.08} p={[0, 0.03, 0]} s={[1, 0.6, 1]} m="#7A3A6A" line={0.5} seg={12} /></group></>}; return <group><Boneco pos={pos} ry={ry} c={c} /><NoPulso P={{pos, ry, c}} joia s={1.4} /><Brilho id={331} p={add(mN, [0.01, -0.04, 0.06])} k={(t * 1.4) % 1} s={0.14} /></group>; })() : null}
+      {mv >= 0 ? <group>
+        <group position={[XPAR, 0.5 + Math.sin(mv * Math.PI * 0.7) * 0.22, -0.1 + mv * 0.3]} rotation={[-mv * 1.25, 0, mv * 0.25]} scale={0.8}><Mesa p={[0, -0.46, 0]} r={0.42} /><Prato p={[0.1, 0.3, 0.05]} sopa={mv < 0.15} /></group>
+        {mv > 0.1 ? <><Prato p={[XPAR - 0.5 * mv, 0.9 + mv * 0.85, -0.2 + mv * 0.4]} /><Panqueca p={[XPAR + 0.55 * mv, 1.0 + mv * 1.0, -0.2 + mv * 0.3]} rot={[mv * 6, 0, mv * 4]} s={0.9} /><Garfo p={[XPAR + 0.2 * mv, 0.95 + mv * 1.25, -0.25 + mv * 0.5]} rot={[mv * 3, 0, mv * 5]} />{Array.from({length: 9}).map((_, i) => <Esf key={i} r={0.022 + (i % 3) * 0.01} p={[XPAR + Math.cos(i * 0.9) * 0.5 * mv, 1.1 + Math.sin(i * 1.7) * 0.28 + mv * 0.5, -0.1 + mv * 0.35]} m="#E8A14A" line={0.3} seg={8} />)}</> : null}
+      </group> : null}
       {desfile ? <><Bandeirolas a={[XPAR - 4, 2.6, -1.4]} b={[XPAR + 4, 2.6, -1.4]} n={16} /><Confete c={[XPAR, 0.1, -0.5]} t={t} t0={TM.voltou - 0.2} area={[5, 2.8, 2]} /></> : null}
       {/* jornal girando até a câmera */}
       {jornal > 0 ? <group position={mix([XPAR + 0.7, 1.15, -1.6], [XPAR + 0.7, 1.15, -1.05], jornal)} rotation={[0, 0, (1 - jornal) * 12]} scale={0.2 + jornal * 0.8}><Placa p={[0, 0, 0]} txt={'LE FIGARO\nMODA OU\nVERGONHA?'} w={0.42} h={0.5} fundo="#F4ECD8" tinta="#2B2629" moldura={null} /></group> : null}
@@ -897,9 +955,11 @@ const CenaOfi = ({t}) => {
   return <group>
     <OficinaCartier t={t} />
     <Boneco pos={CA.pos} ry={CA.ry} c={CA.c} />
-    <RelPulso p={[XOFI, 0.95, -1.35]} rot={[-Math.PI / 2 + 0.25, 0, 0]} s={3.2} parafusos={mont} tira={tira} brilho={pronto ? ((t - TM.couro) * 1.2) % 1 : 0} />
-    {mont > 0 && mont < 1 ? <Faisca id={50} p={[XOFI + 0.05, 1.02, -1.3]} k={(t * 3) % 1} s={0.12} /> : null}
-    {pronto ? [0, 1, 2].map((k) => <Brilho key={k} id={60 + k} p={[XOFI - 0.12 + k * 0.12, 1.08 + (k % 2) * 0.05, -1.3]} k={fx01(t, TM.couro + k * 0.15, 0.6)} s={0.16} />) : null}
+    <Cx a={[0.34, 0.03, 0.14]} p={[XOFI, 0.9, -1.35]} m="#7A4A26" line={0.5} /><Ci rt={0.04} rb={0.052} h={0.32} p={[XOFI, 0.955, -1.35]} rot={[0, 0, Math.PI / 2]} m="#C79A62" seg={18} line={0.6} />
+    {tira > 0.01 ? <group position={[XOFI, 0.955, -1.35]} rotation={[0, Math.PI / 2, 0]}><mesh material={T('#7A4A26')} rotation={[0, 0, Math.PI / 2 - tira * Math.PI]}><torusGeometry args={[0.044, 0.009, 6, 24, Math.PI * 2 * tira]} /></mesh></group> : null}
+    <RelPulso p={[XOFI, 0.999, -1.35]} rot={[-Math.PI / 2, 0, 0]} s={1.0} parafusos={mont} tira={0} brilho={0} />
+    {mont > 0 && mont < 1 ? <Faisca id={50} p={[XOFI + 0.02, 1.02, -1.33]} k={(t * 3) % 1} s={0.06} /> : null}
+    {pronto ? [0, 1, 2].map((k) => <Brilho key={k} id={60 + k} p={[XOFI - 0.03 + k * 0.03, 1.03 + (k % 2) * 0.015, -1.33]} k={fx01(t, TM.couro + k * 0.15, 0.6)} s={0.05} />) : null}
   </group>;
 };
 const CenaCam = ({t}) => {
@@ -955,8 +1015,7 @@ const CenaPal = ({t}) => {
   return <group>
     <Palacio t={t} />
     <Boneco pos={Q.pos} ry={Q.ry} c={Q.c} />
-    <RelPulso p={mix(Q.c.mN, PM(Q.pos, 0, [-0.148, 0.79, 0]), 0.16)} rot={[0, 0, 0]} s={0.6} />
-    <group position={Q.c.mN}><Pulseira p={[0, -0.03, 0]} rot={[Math.PI / 2, 0, 0]} s={0.5} /></group>
+    <NoPulso P={Q} joia s={1.5} />
     {[0, 1, 2].map((k) => <Brilho key={k} id={90 + k} p={add(Q.c.mN, [Math.cos(k * 2) * 0.1, 0.08 + Math.sin(k * 2) * 0.05, 0.05])} k={((t * 1.3 + k * 0.33) % 1)} s={0.12} />)}
     {t > TM.dez2 - 0.1 ? <group position={[XPAL + 0.4, 1.85, -0.6]} scale={kf(t, [[TM.dez2 - 0.1, 0], [TM.dez2 + 0.15, 1, back]])}><Placa p={[0, 0, 0]} txt="1810" w={0.4} h={0.16} fundo="#F7D24A" tinta="#6A3A22" moldura={null} /></group> : null}
     {t > TM.rainha ? <group position={[XPAL + 0.45, 1.5, -0.5]} rotation={[0, 0, -0.15]} scale={kf(t, [[TM.rainha, 2.2], [TM.rainha + 0.12, 1, outQ]])}><Placa p={[0, 0, 0]} txt="✓ VERDADE" w={0.6} h={0.16} fundo="#4CC38A" tinta="#FFFFFF" borda="#FFFFFF" moldura={null} /></group> : null}
@@ -969,8 +1028,9 @@ const CenaQua = ({t}) => {
   return <group>
     <QuartoMenino t={t} />
     <Pequeno P={K} />
-    {!depois ? <Pequeno P={A} /> : null}
-    {K.celular ? <Celular p={K.celular} rot={[0, 0, 0]} s={0.9} comprado={t > TM.comprar ? 1 : 0} /> : null}
+        {!depois ? <Pequeno P={A} /> : null}
+    {K.celular && t < TM.comprar + 0.25 ? <Celular p={K.celular} rot={[0, 0, 0]} s={0.9} comprado={t > TM.comprar ? 1 : 0} /> : null}
+    {K.celular && t >= TM.comprar + 0.25 ? <Estojo p={add(K.c.mN, [0, 0.06, 0.04])} s={1.0} /> : null}
     {depois && t > TM.comprar ? [0, 1, 2].map((k) => <Brilho key={k} id={110 + k} p={add(K.celular, [Math.cos(k * 2) * 0.12, 0.1 + Math.sin(k * 2) * 0.06, 0.05])} k={fx01(t, TM.comprar + k * 0.1, 0.6)} s={0.14} />) : null}
   </group>;
 };
@@ -986,21 +1046,28 @@ const AMARELAS = new Set(['pulseirinha', 'bolso', 'madame', 'maos', 'panqueca', 
 const Legenda = ({t}) => {
   let cur = null;
   for (let i = 0; i < GRUPOS.length; i++) { const nx = GRUPOS[i + 1]; const fim = nx ? Math.min(nx.s, GRUPOS[i].e + 0.6) : GRUPOS[i].e + 0.5; if (t >= GRUPOS[i].s - 0.02 && t < fim) cur = GRUPOS[i]; }
-  if (!cur || (t > TM.ai - 0.05 && t < TM.dez)) return null;
+  if (!cur) return null;
   const am = cur.txt.split(' ').some((w) => AMARELAS.has(norm(w)));
   return <div style={{position: 'absolute', left: 0, right: 0, top: 1300, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
     <span style={{fontFamily: 'MontLE', fontWeight: 900, fontSize: 80, color: am ? '#FFE36A' : '#fff', WebkitTextStroke: '14px #372C2E', paintOrder: 'stroke fill', textShadow: '0 5px 9px rgba(0,0,0,0.3)'}}>{limpa(cur.txt)}</span>
   </div>;
 };
-// carimbo "PLOT TWIST" no preto
-const PlotTwist = ({t}) => {
-  if (t < TM.ai - 0.3 || t > TM.dez + 0.25) return null;
-  const k = kf(t, [[TM.virada - 0.05, 2.4], [TM.virada + 0.1, 1, outQ]]);
-  const op = kf(t, [[TM.ai - 0.3, 0], [TM.ai - 0.05, 1], [TM.dez, 1], [TM.dez + 0.25, 0]]);
-  return <AbsoluteFill style={{opacity: op, backgroundColor: '#14101A', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-    {t > TM.virada - 0.05 ? <div style={{transform: `rotate(-12deg) scale(${k})`, border: '16px solid #E8333C', borderRadius: 28, padding: '20px 50px', fontFamily: 'MontLE', fontWeight: 900, fontSize: 150, color: '#E8333C', letterSpacing: 4}}>PLOT TWIST</div> : null}
-  </AbsoluteFill>;
-};
+// "virada": a mesa voa, tudo congela, sem cor, vinheta vermelha e o carimbo bate
+const congela = (x) => (x >= TM.virada && x < TM.dez + FUSAO ? TM.virada : x);
+const Virada = ({t}) => { if (t < TM.virada - 0.02 || t > TM.dez + FUSAO) return null;
+  const k = kf(t, [[TM.virada - 0.02, 2.6], [TM.virada + 0.09, 1, outQ]]); const u = t - TM.virada; const tre = u > 0.08 ? Math.sin(u * 70) * 16 * Math.exp(-(u - 0.08) * 8) : 0;
+  const sai = kf(t, [[TM.dez - 0.05, 1], [TM.dez + FUSAO, 0]]);
+  return <AbsoluteFill style={{opacity: sai}}>
+    <AbsoluteFill style={{background: 'radial-gradient(ellipse at center, rgba(180,20,20,0) 40%, rgba(170,15,25,0.65) 100%)'}} />
+    {u > 0.06 ? Array.from({length: 16}).map((_, i) => { const a = i * 2.399; const d = 330 + (i % 5) * 45 + u * 240; return <div key={i} style={{position: 'absolute', left: 540 + Math.cos(a) * d * 1.1 - 22, top: 430 + Math.sin(a) * d * 0.55 - 22, width: 34 + (i % 3) * 18, height: 34 + (i % 3) * 18, borderRadius: 50, background: 'rgba(235,225,205,0.75)', opacity: Math.max(0, 1 - u * 1.3)}} />; }) : null}
+    <div style={{position: 'absolute', left: 90, right: 90, top: 150, display: 'flex', justifyContent: 'center', transform: `translate(${tre}px, ${tre * 0.6}px) rotate(-11deg) scale(${k})`}}>
+      <div style={{background: '#E8263A', border: '20px solid #FFFFFF', borderRadius: 34, padding: '34px 54px', boxShadow: '0 14px 0 rgba(0,0,0,0.35)', fontFamily: 'MontLE', fontWeight: 900, fontSize: 190, lineHeight: 0.95, color: '#FFE36A', textAlign: 'center', WebkitTextStroke: '10px #372C2E', paintOrder: 'stroke fill'}}>PLOT<br />TWIST</div>
+    </div>
+  </AbsoluteFill>; };
+// os durões: tom de filme de gângster, névoa e título
+const Duroes = ({t}) => { const k = kf(t, [[TM.corrente - FUSAO, 0], [TM.corrente + FUSAO, 1], [TM.relogio2 - 0.25, 1], [TM.relogio2 + 0.05, 0]]); if (k <= 0.01) return null;
+  return <AbsoluteFill style={{opacity: k}}><AbsoluteFill style={{backgroundColor: 'rgba(95,85,70,0.4)', mixBlendMode: 'multiply'}} /><AbsoluteFill style={{background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(10,8,5,0.6) 100%)'}} />
+    <div style={{position: 'absolute', left: 0, right: 0, top: 240, textAlign: 'center', fontFamily: 'MontLE', fontWeight: 900, fontSize: 92, letterSpacing: 10, color: '#F4ECD8', WebkitTextStroke: '10px #2B2629', paintOrder: 'stroke fill'}}>OS BIGODUDOS</div></AbsoluteFill>; };
 // contador 1, 2, 3 das ações no ar
 const Contador = ({t}) => {
   const marcas = [TM.soltar, TM.cavar, TM.abrir]; let n = 0, t0 = 0; marcas.forEach((m, i) => { if (t >= m) { n = i + 1; t0 = m; } });
@@ -1058,14 +1125,17 @@ const Camada = ({t, c}) => {
 export const Relogio = () => {
   const t = useCurrentFrame() / 30;
   const f = SUAVE.fusao(t);
-  const tA = f ? Math.max(t, f.t0) : t, tB = f ? Math.min(t, f.t0 - 0.12) : t;
+  const tA = congela(f ? Math.max(t, f.t0) : t), tB = congela(f ? Math.min(t, f.t0 - 0.12) : t);
+  const cinza = kf(t, [[TM.virada - 0.03, 0], [TM.virada + 0.03, 1], [TM.dez + FUSAO, 1]]) * (t < TM.dez + FUSAO ? 1 : 0);
+  const filtro = cinza > 0 ? `grayscale(${cinza * 0.9}) contrast(1.1)` : undefined;
   const flash = Math.max(fx01(t, TM.guerra, 0.25) > 0 ? 1 - fx01(t, TM.guerra, 0.25) : 0, fx01(t, TM.rainha, 0.2) > 0 ? (1 - fx01(t, TM.rainha, 0.2)) * 0.5 : 0, fx01(t, TM.tropa, 0.2) > 0 ? (1 - fx01(t, TM.tropa, 0.2)) * 0.4 : 0);
   return (
     <AbsoluteFill style={{backgroundColor: '#D3E3F0'}}>
-      <Camada t={tA} c={camEm(tA)} />
-      <AbsoluteFill style={{opacity: f ? 1 - f.k : 0}}>{f ? <Camada t={tB} c={SUAVE.noPlano(f.i - 1, t)} /> : null}</AbsoluteFill>
+      <AbsoluteFill style={{filter: f && t >= TM.dez - FUSAO ? undefined : filtro}}><Camada t={tA} c={camEm(f ? Math.max(t, f.t0) : t)} /></AbsoluteFill>
+      <AbsoluteFill style={{opacity: f ? 1 - f.k : 0, filter: filtro}}>{f ? <Camada t={tB} c={SUAVE.noPlano(f.i - 1, t)} /> : null}</AbsoluteFill>
+      <Duroes t={t} />
       {flash > 0 ? <AbsoluteFill style={{backgroundColor: `rgba(255,255,255,${flash * 0.45})`}} /> : null}
-      <PlotTwist t={t} />
+      <Virada t={t} />
       <Contador t={t} />
       <Cronometro t={t} />
       <Balao t={t} />
